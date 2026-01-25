@@ -253,6 +253,7 @@ export function Header() {
   // Calculate nav offset to center the active tab
   useLayoutEffect(() => {
     if (!navRef.current || !activeProjectId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Legitimate DOM measurement requiring sync state update
       setNavOffset(0);
       return;
     }

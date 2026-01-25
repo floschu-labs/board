@@ -49,6 +49,7 @@ export function TextType({
   useEffect(() => {
     // Guard: Don't start animation if textArray is empty
     if (textArray.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Edge case: complete immediately when no text to animate
       handleComplete();
       return;
     }
