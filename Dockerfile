@@ -1,0 +1,45 @@
+# Build stage
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including devDependencies for build)
+RUN npm ci
+
+# Copy source files
+COPY . .
+
+# Build the frontend
+RUN npm run build
+
+# Production stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install production dependencies only
+COPY package*.json ./
+RUN npm ci --omit=dev && npm install better-sqlite3 express cors
+
+# Copy built frontend
+COPY --from=builder /app/dist ./dist
+
+# Copy server files
+COPY server ./server
+
+# Create data directory
+RUN mkdir -p /app/data
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV DATA_DIR=/app/data
+ENV PORT=3000
+
+# Expose port
+EXPOSE 3000
+
+# Start the server
+CMD ["node", "server/index.js"]

@@ -1,0 +1,14 @@
+services:
+  board:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - board-data:/app/data
+    environment:
+      - NODE_ENV=production
+      - DATA_DIR=/app/data
+    restart: unless-stopped
+
+volumes:
+  board-data:
