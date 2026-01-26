@@ -256,10 +256,11 @@ async function takeScreenshot() {
     await new Promise((r) => setTimeout(r, 2000));
 
     console.log('Taking screenshot...');
-    const screenshotPath = path.join(ROOT_DIR, 'docs', 'screenshot.png');
+    const screenshotPath = path.join(ROOT_DIR, 'docs', 'screenshot.webp');
     await page.screenshot({
       path: screenshotPath,
-      type: 'png',
+      type: 'webp',
+      quality: 90,
     });
 
     console.log(`Screenshot saved to ${screenshotPath}`);
