@@ -95,6 +95,7 @@ export function KeyboardShortcutsDialog({ isOpen, onClose }: KeyboardShortcutsDi
                   </ShortcutSection>
 
                   <ShortcutSection title="Lists">
+                    <Shortcut keys={['Shift', 'N']} description="New list" />
                     <Shortcut keys={['Enter']} description="New card in focused list" />
                     <Shortcut keys={['Shift', 'Backspace']} description="Delete focused list" />
                   </ShortcutSection>

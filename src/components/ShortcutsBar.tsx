@@ -5,6 +5,7 @@ export function ShortcutsBar() {
 
   const shortcuts = [
     { key: 'n', label: 'new card' },
+    { key: 'Shift+n', label: 'new list' },
     { key: '↑↓←→', label: 'navigate' },
     { key: 'Shift+↑↓←→', label: 'move' },
     { key: 'Enter', label: 'open' },

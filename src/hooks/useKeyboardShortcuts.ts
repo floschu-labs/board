@@ -7,6 +7,7 @@ interface KeyboardShortcutsOptions {
   enabled?: boolean;
   onNewCard?: () => void;
   onNewCardInList?: (listId: string, position?: number) => void;
+  onNewList?: () => void;
   onOpenCard?: (cardId: string) => void;
   onDeleteCard?: (cardId: string) => void;
   onDeleteList?: (listId: string) => void;
@@ -131,6 +132,13 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions = {}) {
       }
 
       // === GLOBAL SHORTCUTS (work regardless of focus state) ===
+
+      // Shift+N - New list
+      if (e.key === 'N' && e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        options.onNewList?.();
+        return;
+      }
 
       // n - New card (context-aware: based on current focus)
       if (e.key === 'n' && !hasModifier && !e.shiftKey) {

@@ -106,6 +106,10 @@ export function Board({ keyboardShortcutsEnabled = true }: BoardProps) {
     setDeleteConfirmListId(listId);
   }, []);
 
+  const handleNewList = useCallback(() => {
+    setShowNewList(true);
+  }, []);
+
   const handleConfirmDelete = useCallback(() => {
     if (deleteConfirmCardId) {
       deleteCard(deleteConfirmCardId);
@@ -126,6 +130,7 @@ export function Board({ keyboardShortcutsEnabled = true }: BoardProps) {
     enabled: keyboardShortcutsEnabled,
     onNewCard: handleNewCard,
     onNewCardInList: handleNewCardInList,
+    onNewList: handleNewList,
     onOpenCard: handleOpenCard,
     onDeleteCard: handleDeleteCard,
     onDeleteList: handleDeleteList,
