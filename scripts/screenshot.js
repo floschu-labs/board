@@ -5,6 +5,7 @@ import path from 'path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.join(__dirname, '..');
+const BASE_URL = 'http://localhost:4173/board/';
 
 // Dummy data for screenshot
 const DUMMY_DATA = {
@@ -161,39 +162,42 @@ const DUMMY_DATA = {
   ],
 };
 
+async function waitForServer(url, maxAttempts = 30) {
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        console.log(`Server ready at ${url}`);
+        return true;
+      }
+    } catch {
+      // Server not ready yet
+    }
+    console.log(`Waiting for server... (attempt ${i + 1}/${maxAttempts})`);
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  return false;
+}
+
 async function startPreviewServer() {
-  return new Promise((resolve, reject) => {
-    const server = spawn('npx', ['vite', 'preview', '--port', '4173'], {
-      cwd: ROOT_DIR,
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-
-    let started = false;
-
-    server.stdout.on('data', (data) => {
-      const output = data.toString();
-      if (output.includes('Local:') && !started) {
-        started = true;
-        resolve(server);
-      }
-    });
-
-    server.stderr.on('data', (data) => {
-      console.error(`Server stderr: ${data}`);
-    });
-
-    server.on('error', (err) => {
-      reject(err);
-    });
-
-    // Timeout after 30 seconds
-    setTimeout(() => {
-      if (!started) {
-        server.kill();
-        reject(new Error('Server failed to start within 30 seconds'));
-      }
-    }, 30000);
+  const server = spawn('npx', ['vite', 'preview', '--port', '4173'], {
+    cwd: ROOT_DIR,
+    stdio: ['pipe', 'pipe', 'pipe'],
+    detached: false,
   });
+
+  server.stdout.on('data', (data) => console.log(`stdout: ${data}`));
+  server.stderr.on('data', (data) => console.log(`stderr: ${data}`));
+  server.on('error', (err) => console.error(`Server error: ${err}`));
+
+  // Poll for server readiness instead of parsing output
+  const isReady = await waitForServer(BASE_URL, 30);
+  if (!isReady) {
+    server.kill();
+    throw new Error('Server failed to start within 30 seconds');
+  }
+
+  return server;
 }
 
 async function takeScreenshot() {
@@ -204,10 +208,19 @@ async function takeScreenshot() {
     console.log('Launching browser...');
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+      ],
     });
 
     const page = await browser.newPage();
+
+    // Log console messages for debugging
+    page.on('console', (msg) => console.log('Browser console:', msg.text()));
+    page.on('pageerror', (err) => console.error('Browser error:', err));
 
     // Set viewport
     await page.setViewport({
@@ -219,15 +232,28 @@ async function takeScreenshot() {
     // Inject localStorage data before navigating
     await page.evaluateOnNewDocument((data) => {
       localStorage.setItem('board-data', JSON.stringify(data));
+      // Skip onboarding and disable background effect (WebGL not available in headless Chrome)
+      localStorage.setItem('board-theme', JSON.stringify({
+        state: {
+          hasSeenOnboarding: true,
+          backgroundEffect: 'none',
+        },
+        version: 0,
+      }));
     }, DUMMY_DATA);
 
     console.log('Loading page...');
-    await page.goto('http://localhost:4173', {
-      waitUntil: 'networkidle0',
+    await page.goto(BASE_URL, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000,
     });
 
+    // Wait for the app to render (look for the board's scrollable container)
+    console.log('Waiting for app to render...');
+    await page.waitForSelector('.overflow-x-auto', { timeout: 30000 });
+    
     // Wait a bit for any animations to settle
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 2000));
 
     console.log('Taking screenshot...');
     const screenshotPath = path.join(ROOT_DIR, 'docs', 'screenshot.png');
