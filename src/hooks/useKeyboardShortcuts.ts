@@ -200,6 +200,13 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions = {}) {
           return;
         }
 
+        // Enter - Open new list form
+        if (e.key === 'Enter' && !hasModifier) {
+          e.preventDefault();
+          options.onNewList?.();
+          return;
+        }
+
         // Escape - Clear focus
         if (e.key === 'Escape' && !hasModifier) {
           e.preventDefault();
