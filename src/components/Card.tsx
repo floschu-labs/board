@@ -63,7 +63,7 @@ export function CardPreview({ card, dueDateWarningDays = 0, showFavicons = true 
 
       <div className="p-3">
         {/* Title */}
-        <h4 className="text-sm font-medium text-text-primary mb-1 leading-snug">
+        <h4 className="text-sm font-medium text-text-primary mb-1 leading-snug break-words">
           {card.title}
         </h4>
 
@@ -209,7 +209,7 @@ export function Card({ card, isOpenedByKeyboard, onModalClose }: CardProps) {
 
           <div className="p-3">
             {/* Title */}
-            <h4 className="text-sm font-medium text-text-primary mb-1 leading-snug">
+            <h4 className="text-sm font-medium text-text-primary mb-1 leading-snug break-words">
               {card.title}
             </h4>
 
