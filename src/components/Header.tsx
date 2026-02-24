@@ -43,6 +43,7 @@ import {
   parseImportFile,
   validateAndPrepareImport,
 } from '../utils/importExport';
+import { convertTrelloExport } from '../utils/trelloImport';
 import { clearStorage } from '../storage/localStorage';
 
 // Helper component to handle menu close - clears focus and blurs to prevent arrow key re-open
@@ -163,6 +164,7 @@ export function Header() {
   const spinVelocityRef = useRef(0); // Degrees per frame
   const animationFrameRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const trelloFileInputRef = useRef<HTMLInputElement>(null);
   const warningDaysInputRef = useRef<HTMLInputElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -312,6 +314,28 @@ export function Header() {
       importData(prepared);
     } catch (error) {
       alert('Failed to import: ' + (error as Error).message);
+    }
+
+    e.target.value = '';
+  };
+
+  const handleTrelloFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      let trelloData: unknown;
+      try {
+        trelloData = JSON.parse(text);
+      } catch {
+        throw new Error('The file is not valid JSON. Make sure you exported the board as JSON from Trello.');
+      }
+      const boardExport = convertTrelloExport(trelloData);
+      const prepared = validateAndPrepareImport(boardExport, projects);
+      importData(prepared);
+    } catch (error) {
+      alert('Failed to import Trello board: ' + (error as Error).message);
     }
 
     e.target.value = '';
@@ -654,6 +678,19 @@ export function Header() {
                 </MenuItem>
                 <MenuItem>
                   <button
+                    onClick={() => trelloFileInputRef.current?.click()}
+                    className="group flex w-full items-start gap-3 rounded-md px-3 py-2 text-left data-focus:bg-bg-tertiary"
+                  >
+                    <ArrowDownTrayIcon className="w-5 h-5 text-text-muted mt-0.5 shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-text-primary">Import from Trello</span>
+                      <span className="text-xs text-text-muted">In Trello: Menu → More → Print and export → Export as JSON</span>
+                      <span className="text-xs text-text-muted mt-0.5">Imports: lists, cards, due dates, links. Not imported: labels, checklists, members.</span>
+                    </div>
+                  </button>
+                </MenuItem>
+                <MenuItem>
+                  <button
                     onClick={handleExportAll}
                     className="group flex w-full items-start gap-3 rounded-md px-3 py-2 text-left data-focus:bg-bg-tertiary"
                   >
@@ -749,6 +786,13 @@ export function Header() {
           type="file"
           accept=".json"
           onChange={handleFileImport}
+          className="hidden"
+        />
+        <input
+          ref={trelloFileInputRef}
+          type="file"
+          accept=".json"
+          onChange={handleTrelloFileImport}
           className="hidden"
         />
       </header>
