@@ -17,6 +17,8 @@ A privacy-focused, local-only Kanban board. No account required — your data st
 
 ## Self-Host - Docker
 
+Run your own instance with data persisted to SQLite. Just provide a port and a folder for your data.
+
 ### Docker Compose
 
 ```bash
@@ -33,7 +35,22 @@ docker run -d -p 3000:3000 -v board-data:/app/data ghcr.io/floschu/board
 open http://localhost:3000
 ```
 
-Data is persisted in a Docker volume with SQLite.
+### Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `3000` | Port the server listens on inside the container |
+| `DATA_DIR` | `/app/data` | Directory where the SQLite database (`board.db`) is stored |
+
+Mount a volume or bind a local folder to `DATA_DIR` so your data survives container restarts:
+
+```bash
+# Named volume (managed by Docker)
+docker run -d -p 3000:3000 -v board-data:/app/data ghcr.io/floschu/board
+
+# Local folder (e.g. for Unraid, Synology, or manual backups)
+docker run -d -p 3000:3000 -v /path/to/your/folder:/app/data ghcr.io/floschu/board
+```
 
 ## Development
 
