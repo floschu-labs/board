@@ -5,6 +5,8 @@ services:
       - "3000:3000"
     volumes:
       - board-data:/app/data
+      # Or use a local folder instead:
+      # - ./data:/app/data
     environment:
       - NODE_ENV=production
       - DATA_DIR=/app/data

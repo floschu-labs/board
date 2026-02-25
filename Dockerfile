@@ -12,7 +12,9 @@ RUN npm ci
 # Copy source files
 COPY . .
 
-# Build the frontend
+# Build the frontend for self-hosted mode
+ENV VITE_BASE_URL=/
+ENV VITE_STORAGE_MODE=api
 RUN npm run build
 
 # Production stage

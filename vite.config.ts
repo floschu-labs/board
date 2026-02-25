@@ -6,8 +6,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 // Get version from environment variable (set by CI from release tag) or fallback to 'dev'
 const appVersion = (process.env.VITE_APP_VERSION || 'dev').replace(/^v/, '')
 
+// Base URL: '/board/' for GitHub Pages (default), '/' for self-hosted/Docker
+const baseUrl = process.env.VITE_BASE_URL || '/board/'
+
 export default defineConfig({
-  base: '/board/',
+  base: baseUrl,
   plugins: [
     react(),
     tailwindcss(),
@@ -21,8 +24,8 @@ export default defineConfig({
         theme_color: '#0f0f0f',
         background_color: '#0f0f0f',
         display: 'standalone',
-        start_url: '/board/',
-        scope: '/board/',
+        start_url: baseUrl,
+        scope: baseUrl,
         icons: [
           {
             src: 'icons/icon-192.png',

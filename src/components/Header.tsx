@@ -44,7 +44,7 @@ import {
   validateAndPrepareImport,
 } from '../utils/importExport';
 import { convertTrelloExport } from '../utils/trelloImport';
-import { clearStorage } from '../storage/localStorage';
+import { clearData } from '../storage';
 
 // Helper component to handle menu close - clears focus and blurs to prevent arrow key re-open
 function MenuCloseHandler({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -355,7 +355,7 @@ export function Header() {
       danger: true,
       onConfirm: () => {
         clearAllData();
-        clearStorage();
+        clearData();
         // Reset onboarding so user sees it again
         setHasSeenOnboarding(false);
       },

@@ -3,7 +3,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import { shallow } from 'zustand/shallow';
 import { v4 as uuidv4 } from 'uuid';
 import type { Project, List, Card } from '../types';
-import { loadFromStorage, saveToStorage } from '../storage/localStorage';
+import { loadData, saveData } from '../storage';
 
 interface BoardState {
   // Data
@@ -35,7 +35,7 @@ interface BoardState {
   moveCard: (cardId: string, targetListId: string, newPosition: number) => void;
   
   // Data management
-  initialize: () => void;
+  initialize: () => Promise<void>;
   importData: (data: { projects: Project[]; lists: List[]; cards: Card[] }) => void;
   clearAllData: () => void;
 }
@@ -48,8 +48,8 @@ export const useBoardStore = create<BoardState>()(
     activeProjectId: null,
     isInitialized: false,
 
-    initialize: () => {
-      const data = loadFromStorage();
+    initialize: async () => {
+      const data = await loadData();
       set({
         projects: data.projects,
         lists: data.lists,
@@ -278,13 +278,13 @@ export const useBoardStore = create<BoardState>()(
   }))
 );
 
-// Auto-save to localStorage on state changes
+// Auto-save to storage backend on state changes
 useBoardStore.subscribe(
   (state) => ({ projects: state.projects, lists: state.lists, cards: state.cards }),
   (data) => {
     const state = useBoardStore.getState();
     if (state.isInitialized) {
-      saveToStorage(data);
+      saveData(data);
     }
   },
   { equalityFn: shallow }
