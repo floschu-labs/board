@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import {
   Dialog,
   Field,
@@ -16,7 +16,9 @@ import { getSafeHref, getSafeImageUrl } from '../utils/url';
 import { continueMarkdownList } from '../utils/markdownList';
 import { DatePicker } from './DatePicker';
 import { ConfirmDialog } from './ConfirmDialog';
-import { Markdown } from './Markdown';
+// Lazy-loaded so react-markdown + remark plugins are code-split out of the main
+// bundle and only fetched when a card description is actually rendered.
+const Markdown = lazy(() => import('./Markdown').then((m) => ({ default: m.Markdown })));
 
 interface CardModalProps {
   card: Card;
@@ -515,7 +517,9 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
                         }}
                         className="w-full px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border text-text-primary text-sm min-h-[5rem] max-h-[20rem] overflow-y-auto scrollbar-thin cursor-text hover:border-border-light focus:outline-none focus:border-accent transition-colors"
                       >
-                        <Markdown content={description} />
+                        <Suspense fallback={<div className="whitespace-pre-wrap">{description}</div>}>
+                          <Markdown content={description} />
+                        </Suspense>
                       </div>
                     )}
                   </Field>

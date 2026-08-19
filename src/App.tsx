@@ -1,14 +1,17 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { useBoardStore } from './store';
 import { useThemeStore, getGlowColorHex } from './store/theme';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Header } from './components/Header';
 import { Board } from './components/Board';
 import { ShortcutsBar } from './components/ShortcutsBar';
-import { Aurora } from './components/Aurora';
-import { LightRays } from './components/LightRays';
 import { Onboarding } from './components/Onboarding';
 import { ImportDropZone } from './components/ImportDropZone';
+
+// Lazy-loaded so the ogl (WebGL) dependency is code-split out of the main bundle
+// and only fetched when the matching background effect is actually enabled.
+const Aurora = lazy(() => import('./components/Aurora').then((m) => ({ default: m.Aurora })));
+const LightRays = lazy(() => import('./components/LightRays').then((m) => ({ default: m.LightRays })));
 
 export default function App() {
   const initialize = useBoardStore((s) => s.initialize);
@@ -68,24 +71,28 @@ export default function App() {
       {/* Background Effect */}
       {backgroundEffect === 'aurora' && (
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <Aurora 
-            colorStops={['#000000', glowColorHex, '#000000']} 
-            amplitude={1.0} 
-            blend={1}
-            speed={1}
-          />
+          <Suspense fallback={null}>
+            <Aurora
+              colorStops={['#000000', glowColorHex, '#000000']}
+              amplitude={1.0}
+              blend={1}
+              speed={1}
+            />
+          </Suspense>
         </div>
       )}
       {backgroundEffect === 'lightRays' && (
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <LightRays 
-            raysColor={glowColorHex}
-            raysOrigin="top-center"
-            raysSpeed={0.5}
-            lightSpread={1.5}
-            rayLength={2.5}
-            fadeDistance={1.2}
-          />
+          <Suspense fallback={null}>
+            <LightRays
+              raysColor={glowColorHex}
+              raysOrigin="top-center"
+              raysSpeed={0.5}
+              lightSpread={1.5}
+              rayLength={2.5}
+              fadeDistance={1.2}
+            />
+          </Suspense>
         </div>
       )}
       

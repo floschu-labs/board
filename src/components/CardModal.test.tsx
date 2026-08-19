@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CardModal } from './CardModal';
 import { useBoardStore } from '../store';
@@ -32,12 +32,15 @@ describe('CardModal - markdown description', () => {
     useCardFocusStore.setState({ focusedId: null, focusType: null });
   });
 
-  it('renders the description as markdown (not a textarea) by default', () => {
+  it('renders the description as markdown (not a textarea) by default', async () => {
     render(<CardModal card={cardWithDescription} onClose={vi.fn()} />);
 
     // Rendered markdown: bold text present as <strong>, no editing textarea yet.
-    const bold = document.querySelector('.prose strong');
-    expect(bold?.textContent).toBe('bold');
+    // Markdown is lazy-loaded, so wait for its chunk to resolve and render.
+    await waitFor(() => {
+      const bold = document.querySelector('.prose strong');
+      expect(bold?.textContent).toBe('bold');
+    });
     expect(screen.queryByPlaceholderText(/markdown supported/i)).toBeNull();
   });
 
