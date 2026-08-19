@@ -8,6 +8,7 @@ import { ShortcutsBar } from './components/ShortcutsBar';
 import { Aurora } from './components/Aurora';
 import { LightRays } from './components/LightRays';
 import { Onboarding } from './components/Onboarding';
+import { ImportDropZone } from './components/ImportDropZone';
 
 export default function App() {
   const initialize = useBoardStore((s) => s.initialize);
@@ -99,6 +100,9 @@ export default function App() {
         <Board keyboardShortcutsEnabled={hasSeenOnboarding} />
         <ShortcutsBar />
       </div>
+
+      {/* Drag a Board backup or Trello export onto the app to import it */}
+      <ImportDropZone />
 
       {/* Onboarding Modal */}
       {!hasSeenOnboarding && (

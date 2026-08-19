@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useBoardStore } from '../store';
-import { 
-  exportAllData, 
-  parseImportFile, 
+import {
+  exportAllData,
+  parseImportFile,
   validateAndPrepareImport,
-  validateSchema 
+  validateSchema,
+  detectImport
 } from './importExport';
 import type { BoardExport, Project, List, Card } from '../types';
 
@@ -723,5 +724,56 @@ describe('importExport', () => {
       expect(result.lists.filter(l => l.projectId === 'proj-2')).toHaveLength(1);
       expect(result.cards.filter(c => c.listId === 'list-1')).toHaveLength(2);
     });
+  });
+});
+
+describe('detectImport', () => {
+  it('detects a Board backup by its version field', () => {
+    const backup: BoardExport = {
+      version: 1,
+      exportedAt: now,
+      projects: [createProject('p1', 'My Board')],
+      lists: [createList('l1', 'p1', 'Todo', 0)],
+      cards: [createCard('c1', 'l1', 'Task', 0), createCard('c2', 'l1', 'Task 2', 1)],
+    };
+    const result = detectImport(backup);
+    expect(result.source).toBe('board');
+    expect(result.name).toBeNull();
+    expect(result.counts).toEqual({ projects: 1, lists: 1, cards: 2 });
+    expect(result.data).toBe(backup);
+  });
+
+  it('detects a Trello export and converts it', () => {
+    const trello = {
+      id: 'trello-1',
+      name: 'Sprint Board',
+      lists: [
+        { id: 'tl1', name: 'Backlog', closed: false, pos: 1 },
+        { id: 'tl2', name: 'Done', closed: false, pos: 2 },
+      ],
+      cards: [
+        { id: 'tc1', name: 'Card A', desc: '', closed: false, idList: 'tl1', pos: 1, due: null, dateLastActivity: now },
+      ],
+    };
+    const result = detectImport(trello);
+    expect(result.source).toBe('trello');
+    expect(result.name).toBe('Sprint Board');
+    expect(result.data.version).toBe(1);
+    expect(result.counts.projects).toBe(1);
+    expect(result.counts.lists).toBe(2);
+    expect(result.counts.cards).toBe(1);
+  });
+
+  it('throws on an unrecognized object', () => {
+    expect(() => detectImport({ foo: 'bar' })).toThrow(/Unrecognized file/);
+  });
+
+  it('throws on a malformed Board backup (has version but bad shape)', () => {
+    expect(() => detectImport({ version: 1, projects: 'nope' })).toThrow(/not valid/);
+  });
+
+  it('throws on non-object input', () => {
+    expect(() => detectImport(null)).toThrow();
+    expect(() => detectImport('a string')).toThrow();
   });
 });

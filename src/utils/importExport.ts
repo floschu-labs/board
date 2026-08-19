@@ -1,9 +1,74 @@
 import type { Project, List, Card, BoardExport } from '../types';
 import { useBoardStore } from '../store';
 import { validateSchema } from './validation';
+import { convertTrelloExport, isTrelloExport } from './trelloImport';
 
 // Re-export validateSchema for use elsewhere
 export { validateSchema };
+
+export interface DetectedImport {
+  /** Board data ready to pass to validateAndPrepareImport. */
+  data: BoardExport;
+  /** Where the file came from. */
+  source: 'board' | 'trello';
+  /** Board/project name when known (Trello exports), else null. */
+  name: string | null;
+  counts: { projects: number; lists: number; cards: number };
+}
+
+/**
+ * Classify already-parsed JSON as either a Board backup or a Trello board
+ * export and return it as a ready-to-import BoardExport plus a short summary.
+ *
+ * Board backups carry a `version` field; Trello exports do not (they have a
+ * board name with lists/cards). Throws if the data matches neither shape.
+ *
+ * @param raw - Parsed JSON (unknown shape)
+ * @returns The detected import descriptor
+ * @throws {Error} if the data is not a recognized import file
+ */
+export function detectImport(raw: unknown): DetectedImport {
+  if (raw && typeof raw === 'object' && 'version' in (raw as Record<string, unknown>)) {
+    // Board backup
+    const data = raw as BoardExport;
+    if (
+      data.version !== 1 ||
+      !Array.isArray(data.projects) ||
+      !Array.isArray(data.lists) ||
+      !Array.isArray(data.cards)
+    ) {
+      throw new Error('This looks like a Board backup, but the file is not valid.');
+    }
+    return {
+      data,
+      source: 'board',
+      name: null,
+      counts: {
+        projects: data.projects.length,
+        lists: data.lists.length,
+        cards: data.cards.length,
+      },
+    };
+  }
+
+  if (isTrelloExport(raw)) {
+    const data = convertTrelloExport(raw);
+    return {
+      data,
+      source: 'trello',
+      name: raw.name,
+      counts: {
+        projects: data.projects.length,
+        lists: data.lists.length,
+        cards: data.cards.length,
+      },
+    };
+  }
+
+  throw new Error(
+    'Unrecognized file. Drop a Board backup or a Trello board export (.json).'
+  );
+}
 
 export function exportAllData(): BoardExport {
   const { projects, lists, cards } = useBoardStore.getState();
