@@ -36,6 +36,7 @@ import { ContextMenu, useContextMenu } from './ContextMenu';
 import { ConfirmDialog, useConfirmDialog } from './ConfirmDialog';
 import { RenameDialog, useRenameDialog } from './RenameDialog';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
+import { BoardSwitcherDialog } from './BoardSwitcherDialog';
 import type { Project } from '../types';
 import {
   exportAllData,
@@ -161,6 +162,7 @@ export function Header() {
   const [dataExpanded, setDataExpanded] = useState(false);
   const [helpExpanded, setHelpExpanded] = useState(false);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showBoardSwitcher, setShowBoardSwitcher] = useState(false);
   const spinVelocityRef = useRef(0); // Degrees per frame
   const animationFrameRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -361,37 +363,41 @@ export function Header() {
     });
   };
 
+  const handleRenameProject = (projectId: string) => {
+    const project = projects.find((p) => p.id === projectId);
+    if (project) {
+      showRename({
+        title: 'Rename Project',
+        currentName: project.name,
+        onConfirm: (newName) => updateProject(projectId, { name: newName }),
+      });
+    }
+  };
+
+  const handleDeleteProject = (projectId: string) => {
+    const project = projects.find((p) => p.id === projectId);
+    showConfirm({
+      title: 'Delete Project',
+      message: `Are you sure you want to delete "${project?.name}"?\nThis action cannot be undone.`,
+      confirmLabel: 'Delete',
+      danger: true,
+      onConfirm: () => deleteProject(projectId),
+    });
+  };
+
   const handleTabRightClick = (e: React.MouseEvent, projectId: string) => {
     showContextMenu(e, [
       {
         label: 'Rename',
         description: 'Change the project name',
         icon: <PencilIcon className="w-5 h-5" />,
-        onClick: () => {
-          const project = projects.find((p) => p.id === projectId);
-          if (project) {
-            showRename({
-              title: 'Rename Project',
-              currentName: project.name,
-              onConfirm: (newName) => updateProject(projectId, { name: newName }),
-            });
-          }
-        },
+        onClick: () => handleRenameProject(projectId),
       },
       {
         label: 'Delete',
         description: 'Remove this project',
         icon: <TrashIcon className="w-5 h-5" />,
-        onClick: () => {
-          const project = projects.find((p) => p.id === projectId);
-          showConfirm({
-            title: 'Delete Project',
-            message: `Are you sure you want to delete "${project?.name}"?\nThis action cannot be undone.`,
-            confirmLabel: 'Delete',
-            danger: true,
-            onConfirm: () => deleteProject(projectId),
-          });
-        },
+        onClick: () => handleDeleteProject(projectId),
       },
     ]);
   };
@@ -434,9 +440,9 @@ export function Header() {
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <nav 
+          <nav
             ref={navRef}
-            className="absolute left-1/2 flex items-center gap-1 transition-transform duration-200"
+            className="absolute left-1/2 hidden sm:flex items-center gap-1 transition-transform duration-200"
             style={{
               // Center the nav, then apply offset to center active tab
               transform: `translateX(calc(-50% + ${navOffset}px))`,
@@ -481,6 +487,24 @@ export function Header() {
             {activeProject && <ProjectTabPreview project={activeProject} />}
           </DragOverlay>
         </DndContext>
+
+        {/* Mobile: board switcher trigger (replaces the horizontal tab row below sm) */}
+        <button
+          onClick={() => {
+            if (projects.length === 0) {
+              handleNewProject();
+            } else {
+              setShowBoardSwitcher(true);
+            }
+          }}
+          aria-label="Switch board"
+          className="absolute left-1/2 -translate-x-1/2 sm:hidden flex items-center gap-1 max-w-[60vw] px-3 py-1.5 rounded-md text-sm text-text-primary font-medium hover:bg-bg-tertiary transition-colors"
+        >
+          <span className="truncate">
+            {projects.find((p) => p.id === activeProjectId)?.name ?? 'Add board'}
+          </span>
+          <ChevronDownIcon className="w-4 h-4 shrink-0 text-text-muted" />
+        </button>
 
         {/* Right side: Settings */}
         <div className="flex items-center shrink-0">
@@ -1003,6 +1027,15 @@ export function Header() {
       <KeyboardShortcutsDialog
         isOpen={showKeyboardShortcuts}
         onClose={() => setShowKeyboardShortcuts(false)}
+      />
+
+      {/* Mobile Board Switcher Dialog */}
+      <BoardSwitcherDialog
+        isOpen={showBoardSwitcher}
+        onClose={() => setShowBoardSwitcher(false)}
+        onAddProject={handleNewProject}
+        onRenameProject={handleRenameProject}
+        onDeleteProject={handleDeleteProject}
       />
     </>
   );

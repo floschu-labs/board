@@ -3,7 +3,8 @@ import {
   DndContext,
   DragOverlay,
   closestCorners,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragStartEvent,
@@ -144,9 +145,20 @@ export function Board({ keyboardShortcutsEnabled = true }: BoardProps) {
   const newCard = newCardId ? cards.find((c) => c.id === newCardId) : null;
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    // Mouse: start dragging immediately after a small movement.
+    useSensor(MouseSensor, {
       activationConstraint: {
         distance: 5,
+      },
+    }),
+    // Touch: require a short press-and-hold before dragging so that a quick
+    // swipe scrolls the board/lists instead of accidentally moving a card.
+    // If the finger moves more than `tolerance` px during the delay, the drag
+    // is cancelled and the gesture is treated as a scroll.
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
       },
     })
   );
@@ -277,7 +289,7 @@ export function Board({ keyboardShortcutsEnabled = true }: BoardProps) {
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex-1 overflow-x-auto scrollbar-hide">
+      <div className="flex-1 overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-pl-8">
           <div className="min-w-fit min-h-full p-8 pl-[max(env(safe-area-inset-left),2rem)] pr-[max(env(safe-area-inset-right),2rem)] flex items-center justify-center">
             {/* Container that grows horizontally */}
             <div className="flex gap-6 items-start">
@@ -303,7 +315,7 @@ export function Board({ keyboardShortcutsEnabled = true }: BoardProps) {
 
               {/* Add list button */}
               {showNewList ? (
-                <div className="flex-shrink-0 w-80">
+                <div className="flex-shrink-0 w-80 snap-start">
                   <div className="bg-bg-secondary rounded-xl border border-border p-4">
                     <Field>
                       <Input
@@ -347,7 +359,7 @@ export function Board({ keyboardShortcutsEnabled = true }: BoardProps) {
                   </div>
                 </div>
               ) : (
-                <div className="flex-shrink-0 flex flex-col items-center gap-3">
+                <div className="flex-shrink-0 snap-start flex flex-col items-center gap-3">
                   <Tooltip content="Add list" position="bottom">
                     <button
                       ref={addListButtonRef}

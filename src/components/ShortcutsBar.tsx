@@ -14,7 +14,7 @@ export function ShortcutsBar() {
   ];
 
   return (
-    <div className="flex items-center justify-center gap-4 px-6 text-xs text-text-muted pb-[env(safe-area-inset-bottom)] pl-[max(env(safe-area-inset-left),1.5rem)] pr-[max(env(safe-area-inset-right),1.5rem)]" style={{ minHeight: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}>
+    <div className="hidden sm:flex items-center justify-center gap-4 px-6 text-xs text-text-muted pb-[env(safe-area-inset-bottom)] pl-[max(env(safe-area-inset-left),1.5rem)] pr-[max(env(safe-area-inset-right),1.5rem)]" style={{ minHeight: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}>
       {shortcuts.map(({ key, label }, i) => (
         <span key={i}>
           <span className="text-text-secondary">{key}</span>
