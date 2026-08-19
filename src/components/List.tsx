@@ -170,7 +170,7 @@ export function List({
           (listRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
         }}
         style={style}
-        className={`flex-shrink-0 w-80 ${isDragging ? 'opacity-50' : ''}`}
+        className={`flex-shrink-0 w-80 snap-start ${isDragging ? 'opacity-50' : ''}`}
       >
         <div
           className={`bg-bg-secondary rounded-xl border flex flex-col max-h-[calc(100vh-10rem)] transition-colors relative ${

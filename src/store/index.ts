@@ -263,7 +263,8 @@ export const useBoardStore = create<BoardState>()(
         projects: [...state.projects, ...data.projects],
         lists: [...state.lists, ...data.lists],
         cards: [...state.cards, ...data.cards],
-        activeProjectId: state.activeProjectId ?? (data.projects.length > 0 ? data.projects[0].id : null),
+        // Focus the imported board so the user lands on what they just imported.
+        activeProjectId: data.projects.length > 0 ? data.projects[0].id : state.activeProjectId,
       }));
     },
 

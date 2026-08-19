@@ -169,7 +169,7 @@ export function Onboarding({ onComplete, showProjectNameStep = true }: Onboardin
               >
                 Continue
               </button>
-              <p className="text-center text-text-muted text-xs mt-3">
+              <p className="text-center text-text-muted text-xs mt-3 hidden sm:block">
                 Press <kbd className="px-1.5 py-0.5 bg-bg-tertiary rounded text-text-secondary">Enter</kbd> to continue
               </p>
             </div>
@@ -216,7 +216,7 @@ export function Onboarding({ onComplete, showProjectNameStep = true }: Onboardin
               >
                 Continue
               </button>
-              <p className="text-center text-text-muted text-xs mt-3">
+              <p className="text-center text-text-muted text-xs mt-3 hidden sm:block">
                 Press <kbd className="px-1.5 py-0.5 bg-bg-tertiary rounded text-text-secondary">Enter</kbd> to continue
               </p>
             </div>
@@ -254,7 +254,7 @@ export function Onboarding({ onComplete, showProjectNameStep = true }: Onboardin
               >
                 Get Started
               </button>
-              <p className="text-center text-text-muted text-xs mt-3">
+              <p className="text-center text-text-muted text-xs mt-3 hidden sm:block">
                 Press <kbd className="px-1.5 py-0.5 bg-bg-tertiary rounded text-text-secondary">Enter</kbd> to continue
               </p>
             </div>

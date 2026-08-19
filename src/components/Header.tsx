@@ -28,7 +28,7 @@ import {
   TransitionChild,
   Button,
 } from '@headlessui/react';
-import { PlusIcon, Cog6ToothIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, TrashIcon, PencilIcon, ChevronDownIcon, ExclamationTriangleIcon, QuestionMarkCircleIcon, CommandLineIcon } from '@heroicons/react/16/solid';
+import { PlusIcon, EllipsisHorizontalIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, TrashIcon, PencilIcon, ChevronDownIcon, ExclamationTriangleIcon, QuestionMarkCircleIcon, CommandLineIcon } from '@heroicons/react/16/solid';
 import { useBoardStore } from '../store';
 import { useThemeStore, GLOW_COLORS, BACKGROUND_EFFECTS, type BackgroundEffect } from '../store/theme';
 import { useCardFocusStore } from '../store/cardFocus';
@@ -36,6 +36,8 @@ import { ContextMenu, useContextMenu } from './ContextMenu';
 import { ConfirmDialog, useConfirmDialog } from './ConfirmDialog';
 import { RenameDialog, useRenameDialog } from './RenameDialog';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
+import { BoardSwitcherDialog } from './BoardSwitcherDialog';
+import identityIcon from '../assets/identity-icon.png';
 import type { Project } from '../types';
 import {
   exportAllData,
@@ -161,6 +163,7 @@ export function Header() {
   const [dataExpanded, setDataExpanded] = useState(false);
   const [helpExpanded, setHelpExpanded] = useState(false);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showBoardSwitcher, setShowBoardSwitcher] = useState(false);
   const spinVelocityRef = useRef(0); // Degrees per frame
   const animationFrameRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -361,37 +364,41 @@ export function Header() {
     });
   };
 
+  const handleRenameProject = (projectId: string) => {
+    const project = projects.find((p) => p.id === projectId);
+    if (project) {
+      showRename({
+        title: 'Rename Project',
+        currentName: project.name,
+        onConfirm: (newName) => updateProject(projectId, { name: newName }),
+      });
+    }
+  };
+
+  const handleDeleteProject = (projectId: string) => {
+    const project = projects.find((p) => p.id === projectId);
+    showConfirm({
+      title: 'Delete Project',
+      message: `Are you sure you want to delete "${project?.name}"?\nThis action cannot be undone.`,
+      confirmLabel: 'Delete',
+      danger: true,
+      onConfirm: () => deleteProject(projectId),
+    });
+  };
+
   const handleTabRightClick = (e: React.MouseEvent, projectId: string) => {
     showContextMenu(e, [
       {
         label: 'Rename',
         description: 'Change the project name',
         icon: <PencilIcon className="w-5 h-5" />,
-        onClick: () => {
-          const project = projects.find((p) => p.id === projectId);
-          if (project) {
-            showRename({
-              title: 'Rename Project',
-              currentName: project.name,
-              onConfirm: (newName) => updateProject(projectId, { name: newName }),
-            });
-          }
-        },
+        onClick: () => handleRenameProject(projectId),
       },
       {
         label: 'Delete',
         description: 'Remove this project',
         icon: <TrashIcon className="w-5 h-5" />,
-        onClick: () => {
-          const project = projects.find((p) => p.id === projectId);
-          showConfirm({
-            title: 'Delete Project',
-            message: `Are you sure you want to delete "${project?.name}"?\nThis action cannot be undone.`,
-            confirmLabel: 'Delete',
-            danger: true,
-            onConfirm: () => deleteProject(projectId),
-          });
-        },
+        onClick: () => handleDeleteProject(projectId),
       },
     ]);
   };
@@ -434,9 +441,9 @@ export function Header() {
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <nav 
+          <nav
             ref={navRef}
-            className="absolute left-1/2 flex items-center gap-1 transition-transform duration-200"
+            className="absolute left-1/2 hidden sm:flex items-center gap-1 transition-transform duration-200"
             style={{
               // Center the nav, then apply offset to center active tab
               transform: `translateX(calc(-50% + ${navOffset}px))`,
@@ -482,6 +489,24 @@ export function Header() {
           </DragOverlay>
         </DndContext>
 
+        {/* Mobile: board switcher trigger (replaces the horizontal tab row below sm) */}
+        <button
+          onClick={() => {
+            if (projects.length === 0) {
+              handleNewProject();
+            } else {
+              setShowBoardSwitcher(true);
+            }
+          }}
+          aria-label="Switch board"
+          className="absolute left-1/2 -translate-x-1/2 sm:hidden flex items-center gap-1 max-w-[60vw] px-3 py-1.5 rounded-md text-sm text-text-primary font-medium hover:bg-bg-tertiary transition-colors"
+        >
+          <span className="truncate">
+            {projects.find((p) => p.id === activeProjectId)?.name ?? 'Add board'}
+          </span>
+          <ChevronDownIcon className="w-4 h-4 shrink-0 text-text-muted" />
+        </button>
+
         {/* Right side: Settings */}
         <div className="flex items-center shrink-0">
           <Menu>
@@ -500,7 +525,7 @@ export function Header() {
                   }
                 }}
               >
-                <Cog6ToothIcon className="w-[18px] h-[18px]" />
+                <EllipsisHorizontalIcon className="w-[18px] h-[18px]" />
               </MenuButton>
 
               <MenuItems
@@ -730,7 +755,7 @@ export function Header() {
                 <MenuItem>
                   <button
                     onClick={() => setShowKeyboardShortcuts(true)}
-                    className="group flex w-full items-start gap-3 rounded-md px-3 py-2 text-left data-focus:bg-bg-tertiary"
+                    className="group hidden sm:flex w-full items-start gap-3 rounded-md px-3 py-2 text-left data-focus:bg-bg-tertiary"
                   >
                     <CommandLineIcon className="w-5 h-5 text-text-muted mt-0.5" />
                     <div className="flex flex-col">
@@ -760,7 +785,7 @@ export function Header() {
                     href="https://github.com/floschu/board" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text-primary transition-colors group"
+                    className="inline-flex items-center gap-1.5 text-xs text-[#f9f9f5] hover:opacity-80 transition-opacity group"
                   >
                     <svg viewBox="0 0 32 32" className="w-4 h-4">
                       <defs>
@@ -772,6 +797,28 @@ export function Header() {
                       <rect width="32" height="32" rx="6" fill="currentColor" className="text-text-muted group-hover:text-glow transition-colors" mask="url(#b-cutout-version)"/>
                     </svg>
                     board v{__APP_VERSION__}
+                  </a>
+                </div>
+                {/* Identity — mirrors the flosch identity footer (florianschuster.at) */}
+                <div className="flex justify-center px-3 pt-0.5 pb-1.5">
+                  <a
+                    href="https://florianschuster.at"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-baseline gap-2 text-[15px] uppercase text-[#f9f9f5] no-underline transition-opacity hover:opacity-80"
+                    style={{
+                      fontFamily:
+                        '"Source Sans 3", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                    }}
+                  >
+                    <img
+                      src={identityIcon}
+                      alt=""
+                      aria-hidden="true"
+                      className="w-[1em] h-[1em] self-center"
+                    />
+                    <span>Florian Schuster</span>
+                    <span className="text-[14px] normal-case text-[#8a8580]">Software</span>
                   </a>
                 </div>
               </MenuItems>
@@ -882,7 +929,7 @@ export function Header() {
                       className="px-4 py-2.5 rounded-xl text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors text-sm font-medium focus:outline-none focus:ring-1 focus:ring-glow/50"
                     >
                       Cancel
-                      <span className="ml-2 text-text-muted text-xs">Esc</span>
+                      <span className="ml-2 text-text-muted text-xs hidden sm:inline">Esc</span>
                     </Button>
                     <Button
                       onClick={() => {
@@ -892,7 +939,7 @@ export function Header() {
                       className="px-4 py-2.5 rounded-xl font-medium text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-glow/50 bg-bg-tertiary hover:bg-bg-hover border border-border text-text-primary"
                     >
                       Save
-                      <span className="ml-2 text-text-muted text-xs">Enter</span>
+                      <span className="ml-2 text-text-muted text-xs hidden sm:inline">Enter</span>
                     </Button>
                   </div>
                 </DialogPanel>
@@ -976,7 +1023,7 @@ export function Header() {
                       className="px-4 py-2.5 rounded-xl text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors text-sm font-medium focus:outline-none focus:ring-1 focus:ring-glow/50"
                     >
                       Cancel
-                      <span className="ml-2 text-text-muted text-xs">Esc</span>
+                      <span className="ml-2 text-text-muted text-xs hidden sm:inline">Esc</span>
                     </Button>
                     <Button
                       onClick={() => {
@@ -989,7 +1036,7 @@ export function Header() {
                       className="px-4 py-2.5 rounded-xl font-medium text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-glow/50 bg-bg-tertiary hover:bg-bg-hover border border-border text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Save
-                      <span className="ml-2 text-text-muted text-xs">Enter</span>
+                      <span className="ml-2 text-text-muted text-xs hidden sm:inline">Enter</span>
                     </Button>
                   </div>
                 </DialogPanel>
@@ -1003,6 +1050,15 @@ export function Header() {
       <KeyboardShortcutsDialog
         isOpen={showKeyboardShortcuts}
         onClose={() => setShowKeyboardShortcuts(false)}
+      />
+
+      {/* Mobile Board Switcher Dialog */}
+      <BoardSwitcherDialog
+        isOpen={showBoardSwitcher}
+        onClose={() => setShowBoardSwitcher(false)}
+        onAddProject={handleNewProject}
+        onRenameProject={handleRenameProject}
+        onDeleteProject={handleDeleteProject}
       />
     </>
   );

@@ -178,7 +178,7 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(
                       title="Close (Esc)"
                     >
                       <XMarkIcon className="w-4 h-4" aria-hidden="true" />
-                      <span className="text-[10px]">Esc</span>
+                      <span className="text-[10px] hidden sm:inline">Esc</span>
                     </button>
                   </div>
 
