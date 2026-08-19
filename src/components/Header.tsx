@@ -785,7 +785,7 @@ export function Header() {
                     href="https://github.com/floschu/board" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text-primary transition-colors group"
+                    className="inline-flex items-center gap-1.5 text-xs text-[#f9f9f5] hover:opacity-80 transition-opacity group"
                   >
                     <svg viewBox="0 0 32 32" className="w-4 h-4">
                       <defs>

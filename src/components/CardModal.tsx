@@ -713,7 +713,7 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
                       className="px-4 py-2.5 rounded-xl bg-danger/10 hover:bg-danger/20 text-danger text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-danger/50"
                     >
                       Delete
-                      <span className="ml-2 text-danger/60 text-xs">Shift+Backspace</span>
+                      <span className="ml-2 text-danger/60 text-xs hidden sm:inline">Shift+Backspace</span>
                     </Button>
                   ) : (
                     <div />
