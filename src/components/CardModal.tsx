@@ -13,6 +13,7 @@ import type { Card } from '../types';
 import { useBoardStore } from '../store';
 import { useCardFocusStore } from '../store/cardFocus';
 import { getSafeHref, getSafeImageUrl } from '../utils/url';
+import { continueMarkdownList } from '../utils/markdownList';
 import { DatePicker } from './DatePicker';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Markdown } from './Markdown';
@@ -443,6 +444,34 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
                       <Textarea
                         ref={descriptionRef}
                         value={description}
+                        onKeyDown={(e) => {
+                          // Auto-continue markdown lists on Enter (Shift+Enter saves the card).
+                          if (
+                            e.key !== 'Enter' ||
+                            e.shiftKey ||
+                            e.metaKey ||
+                            e.ctrlKey ||
+                            e.altKey ||
+                            e.nativeEvent.isComposing
+                          ) {
+                            return;
+                          }
+                          const ta = e.currentTarget;
+                          const edit = continueMarkdownList(
+                            ta.value,
+                            ta.selectionStart,
+                            ta.selectionEnd
+                          );
+                          if (!edit) return;
+                          e.preventDefault();
+                          // Apply synchronously so the caret is set without a
+                          // frame delay, then sync React state to the new value.
+                          ta.setRangeText(edit.text, edit.start, edit.end, 'end');
+                          ta.selectionStart = ta.selectionEnd = edit.cursor;
+                          setDescription(ta.value);
+                          ta.style.height = 'auto';
+                          ta.style.height = `${ta.scrollHeight}px`;
+                        }}
                         onChange={(e) => {
                           setDescription(e.target.value);
                           // Auto-resize textarea
