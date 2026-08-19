@@ -96,7 +96,7 @@ export function ConfirmDialog({
                 className="px-4 py-2.5 rounded-xl text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors text-sm font-medium focus:outline-none focus:ring-1 focus:ring-glow/50 select-none"
               >
                 {cancelLabel}
-                <span className="ml-2 text-text-muted text-xs">Esc</span>
+                <span className="ml-2 text-text-muted text-xs hidden sm:inline">Esc</span>
               </Button>
               <Button
                 ref={confirmButtonRef}
@@ -108,7 +108,7 @@ export function ConfirmDialog({
                 }`}
               >
                 {confirmLabel}
-                <span className={`ml-2 text-xs ${danger ? 'text-danger/60' : 'text-text-muted'}`}>Enter</span>
+                <span className={`ml-2 text-xs hidden sm:inline ${danger ? 'text-danger/60' : 'text-text-muted'}`}>Enter</span>
               </Button>
             </div>
           </motion.div>

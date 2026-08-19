@@ -724,7 +724,7 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
                       className="px-4 py-2.5 rounded-xl text-text-secondary hover:text-text-primary hover:bg-bg-tertiary text-sm font-medium transition-colors focus:outline-none focus:ring-1 focus:ring-glow/50"
                     >
                       Close
-                      <span className="ml-2 text-text-muted text-xs">Esc</span>
+                      <span className="ml-2 text-text-muted text-xs hidden sm:inline">Esc</span>
                     </Button>
                     <Button
                       onClick={handleSave}
@@ -732,7 +732,7 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
                       className="px-5 py-2.5 rounded-xl bg-bg-tertiary hover:bg-bg-hover border border-border text-text-primary text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-glow/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-bg-tertiary"
                     >
                       Save
-                      <span className="ml-2 text-text-muted text-xs">Shift+Enter</span>
+                      <span className="ml-2 text-text-muted text-xs hidden sm:inline">Shift+Enter</span>
                     </Button>
                   </div>
                 </div>

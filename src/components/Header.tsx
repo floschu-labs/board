@@ -28,7 +28,7 @@ import {
   TransitionChild,
   Button,
 } from '@headlessui/react';
-import { PlusIcon, Cog6ToothIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, TrashIcon, PencilIcon, ChevronDownIcon, ExclamationTriangleIcon, QuestionMarkCircleIcon, CommandLineIcon } from '@heroicons/react/16/solid';
+import { PlusIcon, EllipsisHorizontalIcon, ArrowDownTrayIcon, ArrowUpTrayIcon, TrashIcon, PencilIcon, ChevronDownIcon, ExclamationTriangleIcon, QuestionMarkCircleIcon, CommandLineIcon } from '@heroicons/react/16/solid';
 import { useBoardStore } from '../store';
 import { useThemeStore, GLOW_COLORS, BACKGROUND_EFFECTS, type BackgroundEffect } from '../store/theme';
 import { useCardFocusStore } from '../store/cardFocus';
@@ -37,6 +37,7 @@ import { ConfirmDialog, useConfirmDialog } from './ConfirmDialog';
 import { RenameDialog, useRenameDialog } from './RenameDialog';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
 import { BoardSwitcherDialog } from './BoardSwitcherDialog';
+import identityIcon from '../assets/identity-icon.png';
 import type { Project } from '../types';
 import {
   exportAllData,
@@ -524,7 +525,7 @@ export function Header() {
                   }
                 }}
               >
-                <Cog6ToothIcon className="w-[18px] h-[18px]" />
+                <EllipsisHorizontalIcon className="w-[18px] h-[18px]" />
               </MenuButton>
 
               <MenuItems
@@ -754,7 +755,7 @@ export function Header() {
                 <MenuItem>
                   <button
                     onClick={() => setShowKeyboardShortcuts(true)}
-                    className="group flex w-full items-start gap-3 rounded-md px-3 py-2 text-left data-focus:bg-bg-tertiary"
+                    className="group hidden sm:flex w-full items-start gap-3 rounded-md px-3 py-2 text-left data-focus:bg-bg-tertiary"
                   >
                     <CommandLineIcon className="w-5 h-5 text-text-muted mt-0.5" />
                     <div className="flex flex-col">
@@ -796,6 +797,28 @@ export function Header() {
                       <rect width="32" height="32" rx="6" fill="currentColor" className="text-text-muted group-hover:text-glow transition-colors" mask="url(#b-cutout-version)"/>
                     </svg>
                     board v{__APP_VERSION__}
+                  </a>
+                </div>
+                {/* Identity — mirrors the flosch identity footer (florianschuster.at) */}
+                <div className="flex justify-center px-3 pt-0.5 pb-1.5">
+                  <a
+                    href="https://florianschuster.at"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-baseline gap-2 text-[15px] uppercase text-[#f9f9f5] no-underline transition-opacity hover:opacity-80"
+                    style={{
+                      fontFamily:
+                        '"Source Sans 3", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                    }}
+                  >
+                    <img
+                      src={identityIcon}
+                      alt=""
+                      aria-hidden="true"
+                      className="w-[1em] h-[1em] self-center"
+                    />
+                    <span>Florian Schuster</span>
+                    <span className="text-[14px] normal-case text-[#8a8580]">Software</span>
                   </a>
                 </div>
               </MenuItems>
@@ -906,7 +929,7 @@ export function Header() {
                       className="px-4 py-2.5 rounded-xl text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors text-sm font-medium focus:outline-none focus:ring-1 focus:ring-glow/50"
                     >
                       Cancel
-                      <span className="ml-2 text-text-muted text-xs">Esc</span>
+                      <span className="ml-2 text-text-muted text-xs hidden sm:inline">Esc</span>
                     </Button>
                     <Button
                       onClick={() => {
@@ -916,7 +939,7 @@ export function Header() {
                       className="px-4 py-2.5 rounded-xl font-medium text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-glow/50 bg-bg-tertiary hover:bg-bg-hover border border-border text-text-primary"
                     >
                       Save
-                      <span className="ml-2 text-text-muted text-xs">Enter</span>
+                      <span className="ml-2 text-text-muted text-xs hidden sm:inline">Enter</span>
                     </Button>
                   </div>
                 </DialogPanel>
@@ -1000,7 +1023,7 @@ export function Header() {
                       className="px-4 py-2.5 rounded-xl text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors text-sm font-medium focus:outline-none focus:ring-1 focus:ring-glow/50"
                     >
                       Cancel
-                      <span className="ml-2 text-text-muted text-xs">Esc</span>
+                      <span className="ml-2 text-text-muted text-xs hidden sm:inline">Esc</span>
                     </Button>
                     <Button
                       onClick={() => {
@@ -1013,7 +1036,7 @@ export function Header() {
                       className="px-4 py-2.5 rounded-xl font-medium text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-glow/50 bg-bg-tertiary hover:bg-bg-hover border border-border text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Save
-                      <span className="ml-2 text-text-muted text-xs">Enter</span>
+                      <span className="ml-2 text-text-muted text-xs hidden sm:inline">Enter</span>
                     </Button>
                   </div>
                 </DialogPanel>

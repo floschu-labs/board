@@ -97,7 +97,7 @@ export function RenameDialog({
                     className="px-4 py-2.5 rounded-xl text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors text-sm font-medium focus:outline-none focus:ring-1 focus:ring-glow/50"
                   >
                     Cancel
-                    <span className="ml-2 text-text-muted text-xs">Esc</span>
+                    <span className="ml-2 text-text-muted text-xs hidden sm:inline">Esc</span>
                   </Button>
                   <Button
                     onClick={handleSubmit}
@@ -105,7 +105,7 @@ export function RenameDialog({
                     className="px-4 py-2.5 rounded-xl font-medium text-sm transition-colors focus:outline-none focus:ring-1 focus:ring-glow/50 bg-bg-tertiary hover:bg-bg-hover border border-border text-text-primary disabled:opacity-50"
                   >
                     {confirmLabel}
-                    <span className="ml-2 text-text-muted text-xs">Enter</span>
+                    <span className="ml-2 text-text-muted text-xs hidden sm:inline">Enter</span>
                   </Button>
                 </div>
               </DialogPanel>

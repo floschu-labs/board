@@ -376,7 +376,7 @@ export function Board({ keyboardShortcutsEnabled = true }: BoardProps) {
                   </Tooltip>
                   {projectLists.length === 0 && (
                     <p className="text-text-muted text-sm text-center max-w-48">
-                      Add your first list to get started. See shortcuts below.
+                      Add your first list to get started.<span className="hidden sm:inline"> See shortcuts below.</span>
                     </p>
                   )}
                 </div>
