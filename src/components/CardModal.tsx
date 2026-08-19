@@ -15,6 +15,7 @@ import { useCardFocusStore } from '../store/cardFocus';
 import { getSafeHref, getSafeImageUrl } from '../utils/url';
 import { DatePicker } from './DatePicker';
 import { ConfirmDialog } from './ConfirmDialog';
+import { Markdown } from './Markdown';
 
 interface CardModalProps {
   card: Card;
@@ -33,6 +34,7 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
   // Refs for focusable elements
   const titleInputRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const descriptionPreviewRef = useRef<HTMLDivElement>(null);
   const addDescriptionRef = useRef<HTMLButtonElement>(null);
   const coverImageRef = useRef<HTMLInputElement>(null);
   const coverImageClearRef = useRef<HTMLButtonElement>(null);
@@ -52,6 +54,11 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  // Trello-style description: show rendered markdown until the user clicks in
+  // to edit. An empty description always shows the editor so there's nothing
+  // blank to click.
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const showDescriptionEditor = isEditingDescription || description.trim() === '';
   
   // Track which optional fields are expanded (shown as inputs vs collapsed buttons)
   const [expandedFields, setExpandedFields] = useState<{
@@ -71,6 +78,17 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
 
   const expandField = useCallback((field: 'description' | 'coverImage' | 'dueDate' | 'link') => {
     setExpandedFields(prev => ({ ...prev, [field]: true }));
+    // Expanding the description should open the editor, not the preview.
+    if (field === 'description') {
+      setIsEditingDescription(true);
+    }
+  }, []);
+
+  // Switch the description from rendered preview into the raw-markdown editor
+  // and move focus to the textarea (Trello-style click-to-edit).
+  const startEditingDescription = useCallback(() => {
+    setIsEditingDescription(true);
+    setTimeout(() => descriptionRef.current?.focus(), 0);
   }, []);
 
   // Auto-resize description textarea when it becomes visible or content changes
@@ -90,9 +108,10 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
     // Title row (just title input)
     rows.push([titleInputRef.current]);
     
-    // Description row - textarea
+    // Description row - textarea when editing, rendered preview otherwise.
+    // Only one of the two refs is mounted at a time; nulls are filtered below.
     if (expandedFields.description) {
-      rows.push([descriptionRef.current]);
+      rows.push([descriptionRef.current, descriptionPreviewRef.current]);
     }
     
     // Cover image row (input or clear button for base64)
@@ -413,30 +432,56 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
                   </div>
                 </Field>
 
-                {/* Description - shown when expanded */}
+                {/* Description - shown when expanded.
+                    Trello-style: rendered markdown preview until clicked to edit. */}
                 {expandedFields.description && (
                   <Field className="mb-5">
                     <Label className="block text-sm font-medium text-text-secondary mb-2">
                       Description
                     </Label>
-                    <Textarea
-                      ref={descriptionRef}
-                      value={description}
-                      onChange={(e) => {
-                        setDescription(e.target.value);
-                        // Auto-resize textarea
-                        e.target.style.height = 'auto';
-                        e.target.style.height = `${e.target.scrollHeight}px`;
-                      }}
-                      onFocus={(e) => {
-                        // Ensure proper height on focus
-                        e.target.style.height = 'auto';
-                        e.target.style.height = `${e.target.scrollHeight}px`;
-                      }}
-                      placeholder="Add a description"
-                      rows={3}
-                      className="w-full px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border text-text-primary placeholder-text-muted focus:outline-none focus:border-accent data-focus:border-accent text-sm resize-none min-h-[5rem] max-h-[20rem] overflow-y-auto scrollbar-hide"
-                    />
+                    {showDescriptionEditor ? (
+                      <Textarea
+                        ref={descriptionRef}
+                        value={description}
+                        onChange={(e) => {
+                          setDescription(e.target.value);
+                          // Auto-resize textarea
+                          e.target.style.height = 'auto';
+                          e.target.style.height = `${e.target.scrollHeight}px`;
+                        }}
+                        onFocus={(e) => {
+                          // Ensure proper height on focus
+                          e.target.style.height = 'auto';
+                          e.target.style.height = `${e.target.scrollHeight}px`;
+                        }}
+                        onBlur={() => {
+                          // Return to the rendered preview once there's content to show.
+                          if (description.trim() !== '') {
+                            setIsEditingDescription(false);
+                          }
+                        }}
+                        placeholder="Add a description (markdown supported)"
+                        rows={3}
+                        className="w-full px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border text-text-primary placeholder-text-muted focus:outline-none focus:border-accent data-focus:border-accent text-sm resize-none min-h-[5rem] max-h-[20rem] overflow-y-auto scrollbar-hide"
+                      />
+                    ) : (
+                      <div
+                        ref={descriptionPreviewRef}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Description, click to edit"
+                        onClick={startEditingDescription}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            startEditingDescription();
+                          }
+                        }}
+                        className="w-full px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border text-text-primary text-sm min-h-[5rem] max-h-[20rem] overflow-y-auto scrollbar-hide cursor-text hover:border-border-light focus:outline-none focus:border-accent transition-colors"
+                      >
+                        <Markdown content={description} />
+                      </div>
+                    )}
                   </Field>
                 )}
 
