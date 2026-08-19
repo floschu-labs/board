@@ -10,6 +10,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:cloudflare": "tsc -b && vite build --mode cloudflare",
+    "deploy:cloudflare": "npm run build:cloudflare && wrangler pages deploy dist",
     "lint": "eslint .",
     "preview": "vite preview",
     "server": "node server/index.js",
@@ -62,6 +64,7 @@
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4",
     "vite-plugin-pwa": "^1.2.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "wrangler": "^4.124.0"
   }
 }

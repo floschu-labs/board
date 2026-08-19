@@ -6,6 +6,9 @@ dist/
 # Vite cache
 .vite/
 
+# Wrangler / Cloudflare local state (wrangler pages dev, local D1)
+.wrangler/
+
 # Server data directory
 data/
 
@@ -13,6 +16,7 @@ data/
 .env
 .env.*
 !.env.example
+!.env.cloudflare
 
 # Created by https://www.toptal.com/developers/gitignore/api/react,macos,database
 # Edit at https://www.toptal.com/developers/gitignore?templates=react,macos,database

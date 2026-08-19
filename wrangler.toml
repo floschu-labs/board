@@ -1,0 +1,19 @@
+# Cloudflare Pages config for self-hosting board with synced storage (Cloudflare D1).
+# See CLOUDFLARE.md for the full guide.
+#
+# Only read by wrangler (`npm run deploy:cloudflare`, `wrangler pages dev`). It has
+# no effect on the default build, GitHub Pages, or the Docker self-host path.
+
+name = "board"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-08-19"
+
+# D1 (SQLite) binding used by functions/api/data.js.
+#   1) npx wrangler d1 create board
+#   2) paste the printed database_id below
+#   3) add the same binding (variable name: DB) in the Pages project dashboard
+#      under Settings -> Functions -> D1 database bindings
+[[d1_databases]]
+binding = "DB"
+database_name = "board"
+database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
