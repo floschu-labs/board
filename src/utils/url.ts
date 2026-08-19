@@ -25,7 +25,9 @@ const BLOCKED_PROTOCOLS = ['javascript:', 'data:', 'vbscript:', 'file:'];
 export function getDomainFromUrl(url: string): string | null {
   try {
     const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
-    return parsed.hostname.replace('www.', '');
+    // Strip a leading "www." only; a non-anchored replace would corrupt
+    // hostnames that contain "www." elsewhere (e.g. "subwww.example.com").
+    return parsed.hostname.replace(/^www\./, '');
   } catch {
     return null;
   }
