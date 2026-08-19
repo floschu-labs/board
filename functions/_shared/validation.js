@@ -1,8 +1,13 @@
 /**
  * Server-side validation functions.
- * 
+ *
  * SECURITY: These validation functions are critical for preventing
  * malicious data injection via API calls.
+ *
+ * This is the Cloudflare Pages Functions copy of `server/validation.js`.
+ * It is kept in a leading-underscore directory so Cloudflare Pages does not
+ * turn it into a route; it is import-only. Keep it in sync with
+ * `server/validation.js` (the Docker/Express self-host path).
  */
 
 // Maximum lengths for string fields to prevent DoS via huge payloads
@@ -13,7 +18,7 @@ const MAX_DESCRIPTION_LENGTH = 50000;
 const MAX_URL_LENGTH = 2000;
 const MAX_DATE_LENGTH = 50;
 // Cap element counts so a payload of many tiny-but-valid rows can't be turned
-// into an unbounded write (amplified DoS).
+// into an unbounded db.batch() (amplified DoS).
 const MAX_ITEMS = 2000;
 
 /**
@@ -111,7 +116,7 @@ function validateCard(c, index) {
   if (!isValidString(c.updatedAt, MAX_DATE_LENGTH)) {
     throw new Error(`Invalid card at index ${index}: missing or invalid updatedAt`);
   }
-  
+
   // Optional fields - validate type and length only if present
   if (c.link !== undefined && c.link !== null) {
     if (!isValidString(c.link, MAX_URL_LENGTH)) {
@@ -137,7 +142,7 @@ export function validateBoardData(data) {
   if (!data || typeof data !== 'object') {
     throw new Error('Invalid data: not an object');
   }
-  
+
   if (!Array.isArray(data.projects)) {
     throw new Error('Invalid data: projects must be an array');
   }
@@ -158,13 +163,13 @@ export function validateBoardData(data) {
 
   // Validate all projects
   data.projects.forEach((p, i) => validateProject(p, i));
-  
+
   // Validate all lists
   data.lists.forEach((l, i) => validateList(l, i));
-  
+
   // Validate all cards
   data.cards.forEach((c, i) => validateCard(c, i));
-  
+
   // Check for duplicate IDs
   const projectIds = new Set();
   for (const p of data.projects) {
@@ -173,7 +178,7 @@ export function validateBoardData(data) {
     }
     projectIds.add(p.id);
   }
-  
+
   const listIds = new Set();
   for (const l of data.lists) {
     if (listIds.has(l.id)) {
@@ -181,7 +186,7 @@ export function validateBoardData(data) {
     }
     listIds.add(l.id);
   }
-  
+
   const cardIds = new Set();
   for (const c of data.cards) {
     if (cardIds.has(c.id)) {
@@ -189,14 +194,14 @@ export function validateBoardData(data) {
     }
     cardIds.add(c.id);
   }
-  
+
   // Check referential integrity
   for (const l of data.lists) {
     if (!projectIds.has(l.projectId)) {
       throw new Error(`List '${l.id}' references non-existent project '${l.projectId}'`);
     }
   }
-  
+
   for (const c of data.cards) {
     if (!listIds.has(c.listId)) {
       throw new Error(`Card '${c.id}' references non-existent list '${c.listId}'`);
