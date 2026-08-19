@@ -491,7 +491,7 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
                         }}
                         placeholder="Add a description (markdown supported)"
                         rows={3}
-                        className="w-full px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border text-text-primary placeholder-text-muted focus:outline-none focus:border-accent data-focus:border-accent text-sm resize-none min-h-[5rem] max-h-[20rem] overflow-y-auto scrollbar-hide"
+                        className="w-full px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border text-text-primary placeholder-text-muted focus:outline-none focus:border-accent data-focus:border-accent text-sm resize-none min-h-[5rem] max-h-[20rem] overflow-y-auto scrollbar-thin"
                       />
                     ) : (
                       <div
@@ -506,7 +506,7 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
                             startEditingDescription();
                           }
                         }}
-                        className="w-full px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border text-text-primary text-sm min-h-[5rem] max-h-[20rem] overflow-y-auto scrollbar-hide cursor-text hover:border-border-light focus:outline-none focus:border-accent transition-colors"
+                        className="w-full px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border text-text-primary text-sm min-h-[5rem] max-h-[20rem] overflow-y-auto scrollbar-thin cursor-text hover:border-border-light focus:outline-none focus:border-accent transition-colors"
                       >
                         <Markdown content={description} />
                       </div>
