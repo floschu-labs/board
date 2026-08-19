@@ -385,14 +385,39 @@ describe('Board Store', () => {
 
     it('should set activeProjectId if none is set', () => {
       const { importData } = useBoardStore.getState();
-      
+
       importData({
         projects: [{ id: 'p1', name: 'Imported Project', createdAt: '', updatedAt: '' }],
         lists: [],
         cards: [],
       });
-      
+
       expect(useBoardStore.getState().activeProjectId).toBe('p1');
+    });
+
+    it('should focus the imported project even when one is already active', () => {
+      const { createProject, importData } = useBoardStore.getState();
+
+      const existingId = createProject('Existing Project');
+      expect(useBoardStore.getState().activeProjectId).toBe(existingId);
+
+      importData({
+        projects: [{ id: 'p2', name: 'Imported Project', createdAt: '', updatedAt: '' }],
+        lists: [],
+        cards: [],
+      });
+
+      expect(useBoardStore.getState().activeProjectId).toBe('p2');
+    });
+
+    it('should keep the current active project when importing no projects', () => {
+      const { createProject, importData } = useBoardStore.getState();
+
+      const existingId = createProject('Existing Project');
+
+      importData({ projects: [], lists: [], cards: [] });
+
+      expect(useBoardStore.getState().activeProjectId).toBe(existingId);
     });
   });
 
