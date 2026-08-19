@@ -6,7 +6,7 @@ import type { Card as CardType } from '../types';
 import { useFocusedCardId, useCardFocusStore } from '../store/cardFocus';
 import { useThemeStore } from '../store/theme';
 import { getDomainFromUrl, getFaviconUrl, getSafeHref, getSafeImageUrl } from '../utils/url';
-import { getDueDateColor, isDueDatePast } from '../utils/date';
+import { getDueDateColor, isDueDatePast, formatDisplayDate } from '../utils/date';
 import { scrollIntoViewBoth } from '../utils/scroll';
 import { CardModal } from './CardModal';
 
@@ -88,7 +88,7 @@ export function CardPreview({ card, dueDateWarningDays = 0, showFavicons = true 
                 className={`flex items-center gap-1.5 ${dueDateColor} ${isDueDatePast(card.dueDate) ? 'line-through' : ''}`}
               >
                 <CalendarIcon className="w-3 h-3" />
-                {new Date(card.dueDate).toLocaleDateString()}
+                {formatDisplayDate(card.dueDate)}
               </span>
             )}
           </div>
@@ -240,7 +240,7 @@ export function Card({ card, isOpenedByKeyboard, onModalClose }: CardProps) {
                     className={`flex items-center gap-1.5 ${dueDateColor} ${isDueDatePast(card.dueDate) ? 'line-through' : ''}`}
                   >
                     <CalendarIcon className="w-3 h-3" />
-                    {new Date(card.dueDate).toLocaleDateString()}
+                    {formatDisplayDate(card.dueDate)}
                   </span>
                 )}
               </div>

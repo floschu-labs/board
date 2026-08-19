@@ -3,11 +3,11 @@
  * 
  * This module provides functions for persisting board data to a backend API
  * when running in self-hosted/server mode (e.g., via Docker).
- * 
- * Currently unused - the app uses localStorage by default.
- * This is intended for future implementation of server-side persistence
- * when the backend Express server is enabled.
- * 
+ *
+ * Selected at build time when VITE_STORAGE_MODE === 'api' (see src/storage/index.ts).
+ * The default GitHub Pages build uses the localStorage backend instead.
+ *
+ * @see /src/storage/index.ts for backend selection
  * @see /server/index.js for the backend implementation
  */
 

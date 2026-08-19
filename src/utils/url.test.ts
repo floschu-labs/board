@@ -26,6 +26,10 @@ describe('URL Utilities', () => {
     it('should handle subdomains', () => {
       expect(getDomainFromUrl('https://sub.example.com')).toBe('sub.example.com');
     });
+
+    it('should only strip a leading www prefix, not one mid-hostname', () => {
+      expect(getDomainFromUrl('https://subwww.example.com')).toBe('subwww.example.com');
+    });
   });
 
   describe('getFaviconUrl', () => {

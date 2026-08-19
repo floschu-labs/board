@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { useBoardStore } from '../store';
 import { useCardFocusStore } from '../store/cardFocus';
+import { getSafeHref } from '../utils/url';
 import type { Card } from '../types';
 
 interface KeyboardShortcutsOptions {
@@ -486,13 +487,17 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions = {}) {
         const focusedCard = cards.find((c) => c.id === focusedId);
         if (focusedCard?.link) {
           e.preventDefault();
-          const url = focusedCard.link.startsWith('http') ? focusedCard.link : `https://${focusedCard.link}`;
-          // Use anchor click to open in new tab (same as clicking link button)
-          const a = document.createElement('a');
-          a.href = url;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          a.click();
+          // SECURITY: Validate and normalize the URL with the same helper used
+          // by the link button so dangerous protocols (javascript:, etc.) are blocked.
+          const url = getSafeHref(focusedCard.link);
+          if (url) {
+            // Use anchor click to open in new tab (same as clicking link button)
+            const a = document.createElement('a');
+            a.href = url;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.click();
+          }
         }
         return;
       }

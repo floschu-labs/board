@@ -90,11 +90,17 @@ describe('Card Component - Drag and Drop', () => {
   it('should render due date when card has due date', () => {
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 7);
-    const cardWithDueDate = { ...testCard, dueDate: futureDate.toISOString() };
+    // Due dates are stored as YYYY-MM-DD (local date), matching the DatePicker output
+    const year = futureDate.getFullYear();
+    const month = String(futureDate.getMonth() + 1).padStart(2, '0');
+    const day = String(futureDate.getDate()).padStart(2, '0');
+    const dueDate = `${year}-${month}-${day}`;
+    const cardWithDueDate = { ...testCard, dueDate };
     renderWithDndContext(cardWithDueDate);
-    
-    // Check that a date is rendered (format varies by locale)
-    const dateElement = screen.getByText(futureDate.toLocaleDateString());
+
+    // Check that the date is rendered in local time (format varies by locale)
+    const expected = new Date(`${dueDate}T00:00:00`).toLocaleDateString();
+    const dateElement = screen.getByText(expected);
     expect(dateElement).toBeInTheDocument();
   });
 
