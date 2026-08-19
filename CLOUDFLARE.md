@@ -46,11 +46,18 @@ npx wrangler d1 execute board --remote --file=./schema.sql
 
 **2. Create the Pages project — pick a deploy style**
 
-- **A. Push-to-deploy (recommended).** Dashboard → **Workers & Pages → Create → Pages →
-  Connect to Git** → pick your board repo, then set **Build command**
-  `npm run build:cloudflare` and **Build output directory** `dist`. Cloudflare rebuilds
-  and deploys on every push — nothing to run locally.
-- **B. CLI (direct upload).** `npx wrangler pages project create board --production-branch main`,
+- **A. Push-to-deploy (recommended).** Dashboard → **Workers & Pages → Create → Pages**,
+  then either:
+  - **Connect to Git** and pick a repo you own — Cloudflare can only watch repos you
+    administer, so to auto-deploy your own copy, **fork this repo first** and connect the
+    fork (get upstream updates later with GitHub's "Sync fork"); or
+  - **Clone a public repository** and paste this repo's Git URL
+    (`https://github.com/floschu/board`) — no fork required.
+
+  Either way, set **Build command** `npm run build:cloudflare` and **Build output
+  directory** `dist`. Connecting your own fork auto-deploys on every push; a public-URL
+  clone deploys on demand (re-deploy to pull in updates).
+- **B. CLI (direct upload).** No fork needed. `npx wrangler pages project create board --production-branch main`,
   then deploy from your machine on demand with `npm run deploy:cloudflare`.
 
 **3. Bind D1 to the Pages project**
@@ -62,7 +69,9 @@ site uses this dashboard binding.)
 
 ## Deploy
 
-- **A. Git integration:** just `git push` — Cloudflare builds and deploys.
+- **A. Git integration:** if you connected your own fork, just `git push` and Cloudflare
+  builds and deploys. If you cloned the public repo by URL, trigger a redeploy from the
+  dashboard to publish updates.
 - **B. CLI:** `npm run deploy:cloudflare` (builds in Cloudflare mode, uploads `dist/` +
   `functions/`). Re-run any time to publish.
 
