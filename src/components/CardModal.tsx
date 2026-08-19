@@ -27,6 +27,19 @@ interface CardModalProps {
 // Focusable field indices for arrow navigation - no longer used with fixed indices
 // Navigation is now dynamic based on visible elements
 
+/**
+ * Resize a textarea to fit its content (capped by its max-height in CSS).
+ * Adds the vertical border width because the textarea is box-sizing: border-box,
+ * where setting height to scrollHeight alone clips the content by the border and
+ * leaves a residual overflow that shows a scrollbar even when the text fits.
+ */
+function autoSizeTextarea(el: HTMLTextAreaElement): void {
+  const style = getComputedStyle(el);
+  const borderY = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+  el.style.height = 'auto';
+  el.style.height = `${el.scrollHeight + borderY}px`;
+}
+
 export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
   const updateCard = useBoardStore((s) => s.updateCard);
   const deleteCard = useBoardStore((s) => s.deleteCard);
@@ -95,9 +108,7 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
   // Auto-resize description textarea when it becomes visible or content changes
   useEffect(() => {
     if (expandedFields.description && descriptionRef.current) {
-      const textarea = descriptionRef.current;
-      textarea.style.height = 'auto';
-      textarea.style.height = `${textarea.scrollHeight}px`;
+      autoSizeTextarea(descriptionRef.current);
     }
   }, [expandedFields.description, description]);
 
@@ -469,19 +480,15 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
                           ta.setRangeText(edit.text, edit.start, edit.end, 'end');
                           ta.selectionStart = ta.selectionEnd = edit.cursor;
                           setDescription(ta.value);
-                          ta.style.height = 'auto';
-                          ta.style.height = `${ta.scrollHeight}px`;
+                          autoSizeTextarea(ta);
                         }}
                         onChange={(e) => {
                           setDescription(e.target.value);
-                          // Auto-resize textarea
-                          e.target.style.height = 'auto';
-                          e.target.style.height = `${e.target.scrollHeight}px`;
+                          autoSizeTextarea(e.target);
                         }}
                         onFocus={(e) => {
                           // Ensure proper height on focus
-                          e.target.style.height = 'auto';
-                          e.target.style.height = `${e.target.scrollHeight}px`;
+                          autoSizeTextarea(e.target);
                         }}
                         onBlur={() => {
                           // Return to the rendered preview once there's content to show.
