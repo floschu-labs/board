@@ -144,6 +144,29 @@
   background: var(--border-light);
 }
 
+/* Slim, clearly visible scrollbar for scrollable form fields.
+   Declared unlayered (like the base scrollbar rules above) so it wins the
+   cascade over them; a layered rule would lose regardless of specificity.
+   Uses only the -webkit-scrollbar pseudo-elements, since setting the standard
+   scrollbar-width/color makes Chromium ignore this custom thumb styling. */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--text-secondary);
+  border-radius: 5px;
+  border: 2px solid var(--bg-tertiary);
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--text-primary);
+}
+
 /* Focus styles */
 *:focus {
   outline: none;

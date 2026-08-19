@@ -13,8 +13,10 @@ import type { Card } from '../types';
 import { useBoardStore } from '../store';
 import { useCardFocusStore } from '../store/cardFocus';
 import { getSafeHref, getSafeImageUrl } from '../utils/url';
+import { continueMarkdownList } from '../utils/markdownList';
 import { DatePicker } from './DatePicker';
 import { ConfirmDialog } from './ConfirmDialog';
+import { Markdown } from './Markdown';
 
 interface CardModalProps {
   card: Card;
@@ -25,6 +27,19 @@ interface CardModalProps {
 // Focusable field indices for arrow navigation - no longer used with fixed indices
 // Navigation is now dynamic based on visible elements
 
+/**
+ * Resize a textarea to fit its content (capped by its max-height in CSS).
+ * Adds the vertical border width because the textarea is box-sizing: border-box,
+ * where setting height to scrollHeight alone clips the content by the border and
+ * leaves a residual overflow that shows a scrollbar even when the text fits.
+ */
+function autoSizeTextarea(el: HTMLTextAreaElement): void {
+  const style = getComputedStyle(el);
+  const borderY = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+  el.style.height = 'auto';
+  el.style.height = `${el.scrollHeight + borderY}px`;
+}
+
 export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
   const updateCard = useBoardStore((s) => s.updateCard);
   const deleteCard = useBoardStore((s) => s.deleteCard);
@@ -33,6 +48,7 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
   // Refs for focusable elements
   const titleInputRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const descriptionPreviewRef = useRef<HTMLDivElement>(null);
   const addDescriptionRef = useRef<HTMLButtonElement>(null);
   const coverImageRef = useRef<HTMLInputElement>(null);
   const coverImageClearRef = useRef<HTMLButtonElement>(null);
@@ -52,6 +68,11 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  // Trello-style description: show rendered markdown until the user clicks in
+  // to edit. An empty description always shows the editor so there's nothing
+  // blank to click.
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const showDescriptionEditor = isEditingDescription || description.trim() === '';
   
   // Track which optional fields are expanded (shown as inputs vs collapsed buttons)
   const [expandedFields, setExpandedFields] = useState<{
@@ -71,14 +92,23 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
 
   const expandField = useCallback((field: 'description' | 'coverImage' | 'dueDate' | 'link') => {
     setExpandedFields(prev => ({ ...prev, [field]: true }));
+    // Expanding the description should open the editor, not the preview.
+    if (field === 'description') {
+      setIsEditingDescription(true);
+    }
+  }, []);
+
+  // Switch the description from rendered preview into the raw-markdown editor
+  // and move focus to the textarea (Trello-style click-to-edit).
+  const startEditingDescription = useCallback(() => {
+    setIsEditingDescription(true);
+    setTimeout(() => descriptionRef.current?.focus(), 0);
   }, []);
 
   // Auto-resize description textarea when it becomes visible or content changes
   useEffect(() => {
     if (expandedFields.description && descriptionRef.current) {
-      const textarea = descriptionRef.current;
-      textarea.style.height = 'auto';
-      textarea.style.height = `${textarea.scrollHeight}px`;
+      autoSizeTextarea(descriptionRef.current);
     }
   }, [expandedFields.description, description]);
 
@@ -90,9 +120,10 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
     // Title row (just title input)
     rows.push([titleInputRef.current]);
     
-    // Description row - textarea
+    // Description row - textarea when editing, rendered preview otherwise.
+    // Only one of the two refs is mounted at a time; nulls are filtered below.
     if (expandedFields.description) {
-      rows.push([descriptionRef.current]);
+      rows.push([descriptionRef.current, descriptionPreviewRef.current]);
     }
     
     // Cover image row (input or clear button for base64)
@@ -413,30 +444,80 @@ export function CardModal({ card, onClose, isNew = false }: CardModalProps) {
                   </div>
                 </Field>
 
-                {/* Description - shown when expanded */}
+                {/* Description - shown when expanded.
+                    Trello-style: rendered markdown preview until clicked to edit. */}
                 {expandedFields.description && (
                   <Field className="mb-5">
                     <Label className="block text-sm font-medium text-text-secondary mb-2">
                       Description
                     </Label>
-                    <Textarea
-                      ref={descriptionRef}
-                      value={description}
-                      onChange={(e) => {
-                        setDescription(e.target.value);
-                        // Auto-resize textarea
-                        e.target.style.height = 'auto';
-                        e.target.style.height = `${e.target.scrollHeight}px`;
-                      }}
-                      onFocus={(e) => {
-                        // Ensure proper height on focus
-                        e.target.style.height = 'auto';
-                        e.target.style.height = `${e.target.scrollHeight}px`;
-                      }}
-                      placeholder="Add a description"
-                      rows={3}
-                      className="w-full px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border text-text-primary placeholder-text-muted focus:outline-none focus:border-accent data-focus:border-accent text-sm resize-none min-h-[5rem] max-h-[20rem] overflow-y-auto scrollbar-hide"
-                    />
+                    {showDescriptionEditor ? (
+                      <Textarea
+                        ref={descriptionRef}
+                        value={description}
+                        onKeyDown={(e) => {
+                          // Auto-continue markdown lists on Enter (Shift+Enter saves the card).
+                          if (
+                            e.key !== 'Enter' ||
+                            e.shiftKey ||
+                            e.metaKey ||
+                            e.ctrlKey ||
+                            e.altKey ||
+                            e.nativeEvent.isComposing
+                          ) {
+                            return;
+                          }
+                          const ta = e.currentTarget;
+                          const edit = continueMarkdownList(
+                            ta.value,
+                            ta.selectionStart,
+                            ta.selectionEnd
+                          );
+                          if (!edit) return;
+                          e.preventDefault();
+                          // Apply synchronously so the caret is set without a
+                          // frame delay, then sync React state to the new value.
+                          ta.setRangeText(edit.text, edit.start, edit.end, 'end');
+                          ta.selectionStart = ta.selectionEnd = edit.cursor;
+                          setDescription(ta.value);
+                          autoSizeTextarea(ta);
+                        }}
+                        onChange={(e) => {
+                          setDescription(e.target.value);
+                          autoSizeTextarea(e.target);
+                        }}
+                        onFocus={(e) => {
+                          // Ensure proper height on focus
+                          autoSizeTextarea(e.target);
+                        }}
+                        onBlur={() => {
+                          // Return to the rendered preview once there's content to show.
+                          if (description.trim() !== '') {
+                            setIsEditingDescription(false);
+                          }
+                        }}
+                        placeholder="Add a description (markdown supported)"
+                        rows={3}
+                        className="w-full px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border text-text-primary placeholder-text-muted focus:outline-none focus:border-accent data-focus:border-accent text-sm resize-none min-h-[5rem] max-h-[20rem] overflow-y-auto scrollbar-thin"
+                      />
+                    ) : (
+                      <div
+                        ref={descriptionPreviewRef}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Description, click to edit"
+                        onClick={startEditingDescription}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            startEditingDescription();
+                          }
+                        }}
+                        className="w-full px-4 py-2.5 rounded-xl bg-bg-tertiary border border-border text-text-primary text-sm min-h-[5rem] max-h-[20rem] overflow-y-auto scrollbar-thin cursor-text hover:border-border-light focus:outline-none focus:border-accent transition-colors"
+                      >
+                        <Markdown content={description} />
+                      </div>
+                    )}
                   </Field>
                 )}
 
