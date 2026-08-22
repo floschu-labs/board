@@ -1,0 +1,55 @@
+name: Update from upstream
+
+# This runs in COPIES of floschu/board (e.g. those created by the "Deploy to
+# Cloudflare" button), NOT in the upstream repo itself. It merges the latest
+# upstream *release* into your copy, which triggers your Cloudflare redeploy.
+#
+# Your data is untouched: D1 is a separate resource, and the merge keeps your
+# copy's wrangler.toml (with its auto-provisioned database id). Delete this file
+# if you'd rather update manually (GitHub's "Sync fork" button).
+
+on:
+  schedule:
+    - cron: "27 5 * * *" # daily, ~05:27 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    # Never run on the upstream repo.
+    if: github.repository != 'floschu/board'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge latest upstream release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/floschu/board.git
+          git fetch upstream --tags --quiet
+
+          latest=$(gh release view --repo floschu/board --json tagName -q .tagName)
+          echo "Latest upstream release: $latest"
+
+          if git merge-base --is-ancestor "$latest" HEAD; then
+            echo "Already up to date."
+            exit 0
+          fi
+
+          # Bring in the release. Your wrangler.toml (and its database id) is kept
+          # on any conflict, so the deployment keeps pointing at the same D1.
+          if ! git merge --no-edit -X ours "$latest"; then
+            git merge --abort
+            echo "::error::Could not merge $latest automatically. Update manually via GitHub's 'Sync fork'."
+            exit 1
+          fi
+
+          git push origin HEAD

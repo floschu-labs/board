@@ -11,7 +11,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:cloudflare": "tsc -b && vite build --mode cloudflare",
-    "deploy:cloudflare": "npm run build:cloudflare && wrangler pages deploy dist",
+    "deploy:cloudflare": "npm run build:cloudflare && wrangler deploy",
     "lint": "eslint .",
     "preview": "vite preview",
     "server": "node server/index.js",

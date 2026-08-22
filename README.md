@@ -52,16 +52,20 @@ docker run -d -p 3000:3000 -v board-data:/app/data ghcr.io/floschu/board
 docker run -d -p 3000:3000 -v /path/to/your/folder:/app/data ghcr.io/floschu/board
 ```
 
-## Self-Host - Cloudflare Pages
+## Self-Host - Cloudflare
 
-Host your own instance on Cloudflare Pages with data synced across devices via Cloudflare
-D1 (no server to run). The API is unauthenticated, so a public deploy must be put behind an
-access control such as Cloudflare Access. Create a D1 database, then deploy either by
-pointing Cloudflare Pages at this repo — connect a fork for push-to-deploy, or clone the
-public repo by its Git URL (no fork needed), build command `npm run build:cloudflare`,
-output `dist` — or straight from your machine with `npm run deploy:cloudflare`.
+Deploy your own synced instance to Cloudflare (data stored in [Cloudflare D1](https://developers.cloudflare.com/d1/),
+no server to run) in one click. It copies this repo to your account, **auto-creates the
+database**, and deploys:
 
-Full guide: **[CLOUDFLARE.md](CLOUDFLARE.md)**.
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/floschu/board)
+
+Your board data **persists across updates** (the database is separate from the deployed
+code). The `/api/data` endpoint is unauthenticated, so if the deployment is reachable
+publicly, put it behind an access control such as
+[Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/).
+
+Prefer the CLI, or want to know how updates work? See **[CLOUDFLARE.md](CLOUDFLARE.md)**.
 
 ## Development
 

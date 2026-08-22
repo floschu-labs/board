@@ -1,19 +1,25 @@
-# Cloudflare Pages config for self-hosting board with synced storage (Cloudflare D1).
-# See CLOUDFLARE.md for the full guide.
+# Cloudflare configuration for self-hosting board with synced storage (D1).
+# See CLOUDFLARE.md, or just use the "Deploy to Cloudflare" button in the README.
 #
-# Only read by wrangler (`npm run deploy:cloudflare`, `wrangler pages dev`). It has
-# no effect on the default build, GitHub Pages, or the Docker self-host path.
+# Only read by wrangler / the Deploy button. No effect on `npm run dev`, the
+# default `npm run build`, GitHub Pages, or the Docker self-host path.
 
 name = "board"
-pages_build_output_dir = "dist"
-compatibility_date = "2025-08-19"
+main = "worker/index.js"
+compatibility_date = "2025-08-20"
 
-# D1 (SQLite) binding used by functions/api/data.js.
-#   1) npx wrangler d1 create board
-#   2) paste the printed database_id below
-#   3) add the same binding (variable name: DB) in the Pages project dashboard
-#      under Settings -> Functions -> D1 database bindings
+# Serve the built SPA (dist/) as static assets; the Worker handles /api/* first.
+[assets]
+directory = "./dist/"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+# D1 (SQLite) binding used by worker/index.js.
+# No database_id: the "Deploy to Cloudflare" button (and `wrangler deploy`)
+# auto-provisions the database and writes its id back to this file for that
+# deployment. Updating to a new release reuses the same database, so data
+# persists.
 [[d1_databases]]
 binding = "DB"
 database_name = "board"
-database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
