@@ -1,13 +1,8 @@
 /**
- * Server-side validation functions.
+ * Payload validation for the Cloudflare Worker's /api/data endpoint.
  *
- * SECURITY: These validation functions are critical for preventing
- * malicious data injection via API calls.
- *
- * This is the Cloudflare Pages Functions copy of `server/validation.js`.
- * It is kept in a leading-underscore directory so Cloudflare Pages does not
- * turn it into a route; it is import-only. Keep it in sync with
- * `server/validation.js` (the Docker/Express self-host path).
+ * SECURITY: These checks are critical for preventing malicious data injection
+ * via API calls. Keep in sync with server/validation.js (the Docker path).
  */
 
 // Maximum lengths for string fields to prevent DoS via huge payloads
@@ -18,12 +13,9 @@ const MAX_DESCRIPTION_LENGTH = 50000;
 const MAX_URL_LENGTH = 2000;
 const MAX_DATE_LENGTH = 50;
 // Cap element counts so a payload of many tiny-but-valid rows can't be turned
-// into an unbounded db.batch() (amplified DoS).
+// into an unbounded write (amplified DoS).
 const MAX_ITEMS = 2000;
 
-/**
- * Check if value is a string
- */
 function isString(value) {
   return typeof value === 'string';
 }
@@ -36,16 +28,10 @@ function isInteger(value) {
   return typeof value === 'number' && Number.isInteger(value);
 }
 
-/**
- * Check if value is a valid string with length constraints
- */
 function isValidString(value, maxLength) {
   return isString(value) && value.length <= maxLength;
 }
 
-/**
- * Validate a project object
- */
 function validateProject(p, index) {
   if (!p || typeof p !== 'object') {
     throw new Error(`Invalid project at index ${index}: not an object`);
@@ -64,9 +50,6 @@ function validateProject(p, index) {
   }
 }
 
-/**
- * Validate a list object
- */
 function validateList(l, index) {
   if (!l || typeof l !== 'object') {
     throw new Error(`Invalid list at index ${index}: not an object`);
@@ -85,9 +68,6 @@ function validateList(l, index) {
   }
 }
 
-/**
- * Validate a card object
- */
 function validateCard(c, index) {
   if (!c || typeof c !== 'object') {
     throw new Error(`Invalid card at index ${index}: not an object`);
@@ -161,13 +141,8 @@ export function validateBoardData(data) {
     throw new Error(`Too many items: at most ${MAX_ITEMS} projects, lists, and cards each`);
   }
 
-  // Validate all projects
   data.projects.forEach((p, i) => validateProject(p, i));
-
-  // Validate all lists
   data.lists.forEach((l, i) => validateList(l, i));
-
-  // Validate all cards
   data.cards.forEach((c, i) => validateCard(c, i));
 
   // Check for duplicate IDs

@@ -12,6 +12,9 @@ env:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    # Only the canonical repo runs the release pipeline — not forks/copies
+    # (e.g. those created by the "Deploy to Cloudflare" button).
+    if: github.repository == 'floschu/board'
 
     steps:
       - name: Checkout repository
@@ -40,6 +43,7 @@ jobs:
   docker:
     needs: build-and-test
     runs-on: ubuntu-latest
+    if: github.repository == 'floschu/board'
     permissions:
       contents: write
       packages: write
@@ -87,6 +91,7 @@ jobs:
   deploy-pages:
     needs: build-and-test
     runs-on: ubuntu-latest
+    if: github.repository == 'floschu/board'
     permissions:
       contents: read
       pages: write

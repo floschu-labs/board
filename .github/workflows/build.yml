@@ -11,6 +11,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Only run CI on the canonical repo, not forks/copies of it.
+    if: github.repository == 'floschu/board'
 
     steps:
       - name: Checkout repository
