@@ -198,6 +198,11 @@ export default {
     if (url.pathname === '/api/data') {
       return handleData(request, env);
     }
+    // Other /api/* paths are not part of the API — return 404 rather than
+    // falling through to the SPA (which would 200 with index.html).
+    if (url.pathname.startsWith('/api/')) {
+      return json({ error: 'Not found' }, 404);
+    }
     // Everything else is served from the static SPA build.
     return env.ASSETS.fetch(request);
   },
