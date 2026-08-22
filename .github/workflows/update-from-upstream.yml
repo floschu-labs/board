@@ -36,20 +36,28 @@ jobs:
           git remote add upstream https://github.com/floschu/board.git
           git fetch upstream --tags --quiet
 
+          # Track the newest published *release* (a tag) — never develop, so
+          # unreleased/in-progress commits are not pulled in.
           latest=$(gh release view --repo floschu/board --json tagName -q .tagName)
           echo "Latest upstream release: $latest"
 
           if git merge-base --is-ancestor "$latest" HEAD; then
-            echo "Already up to date."
+            echo "Already on the latest release."
             exit 0
           fi
 
-          # Bring in the release. Your wrangler.toml (and its database id) is kept
-          # on any conflict, so the deployment keeps pointing at the same D1.
-          if ! git merge --no-edit -X ours "$latest"; then
+          # Merge only that release commit. A clean merge keeps your wrangler.toml
+          # (with its auto-provisioned database id), because upstream never sets
+          # the id. If a release changes something you also changed, we abort and
+          # ask you to resolve it manually — we never silently drop upstream
+          # changes (so security fixes can't be dropped without you noticing).
+          if ! git merge --no-edit "$latest"; then
             git merge --abort
-            echo "::error::Could not merge $latest automatically. Update manually via GitHub's 'Sync fork'."
+            echo "::error::Could not merge $latest cleanly. Update manually via GitHub's 'Sync fork' and resolve the conflict."
             exit 1
           fi
 
-          git push origin HEAD
+          if ! git push origin HEAD; then
+            echo "::error::Push was rejected (branch protection on the default branch?). Merge $latest manually, or relax protection so this workflow can push."
+            exit 1
+          fi
