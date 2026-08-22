@@ -56,10 +56,10 @@ docker run -d -p 3000:3000 -v /path/to/your/folder:/app/data ghcr.io/floschu/boa
 
 Host your own instance on Cloudflare Pages with data synced across devices via Cloudflare
 D1 (no server to run). The API is unauthenticated, so a public deploy must be put behind an
-access control such as Cloudflare Access. Create a D1 database,
-then either connect the repo in the Cloudflare dashboard for push-to-deploy (build command
-`npm run build:cloudflare`, output `dist`) or deploy from your machine with
-`npm run deploy:cloudflare`.
+access control such as Cloudflare Access. Create a D1 database, then deploy either by
+pointing Cloudflare Pages at this repo — connect a fork for push-to-deploy, or clone the
+public repo by its Git URL (no fork needed), build command `npm run build:cloudflare`,
+output `dist` — or straight from your machine with `npm run deploy:cloudflare`.
 
 Full guide: **[CLOUDFLARE.md](CLOUDFLARE.md)**.
 
