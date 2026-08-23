@@ -8,6 +8,12 @@ name = "board"
 main = "worker/index.js"
 compatibility_date = "2025-08-20"
 
+# Disable per-version preview URLs. They live on separate *.workers.dev hostnames
+# that an Access policy on the main URL/custom domain doesn't cover, so they'd be
+# ungated public copies of the (unauthenticated) API. A single self-hosted board
+# doesn't need them.
+preview_urls = false
+
 # Build the Cloudflare bundle (base '/', API storage) before every deploy, so the
 # "Deploy to Cloudflare" button and `wrangler deploy` produce the right output
 # regardless of any build command Cloudflare auto-detects.
