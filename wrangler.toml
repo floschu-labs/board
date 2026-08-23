@@ -8,6 +8,12 @@ name = "board"
 main = "worker/index.js"
 compatibility_date = "2025-08-20"
 
+# Build the Cloudflare bundle (base '/', API storage) before every deploy, so the
+# "Deploy to Cloudflare" button and `wrangler deploy` produce the right output
+# regardless of any build command Cloudflare auto-detects.
+[build]
+command = "npm run build:cloudflare"
+
 # Serve the built SPA (dist/) as static assets; the Worker handles /api/* first.
 [assets]
 directory = "./dist/"
