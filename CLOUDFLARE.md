@@ -11,34 +11,41 @@ manage, generous free tier, and an alternative to the Docker self-host path.
 > in front of it — [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/)
 > is the zero-code option. See [Make it private](#make-it-private).
 
-## One-click deploy
+## Deploy (recommended: fork + connect)
+
+This path is a couple of clicks more than the button below, but it gives you **easy updates**
+afterwards (see [Keeping up to date](#keeping-up-to-date)).
+
+1. **Fork this repo** to your GitHub account (the **Fork** button, top-right). A fork keeps a
+   link to upstream — so you get GitHub's one-click **Sync fork** — and it includes the
+   update workflow.
+2. In Cloudflare: **Workers & Pages → Create → Workers → Import a repository** → pick your
+   fork. Keep the defaults — `wrangler.toml` drives the build (`npm run build:cloudflare`)
+   and **auto-provisions the D1 database** (no ids to paste, no bindings to click). Deploy.
+3. Then [make it private](#make-it-private) and add a custom domain if you want.
+
+Tables are created automatically on first use.
+
+## Quick try (Deploy button)
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/floschu/board)
 
-Clicking the button ([docs](https://developers.cloudflare.com/workers/platform/deploy-buttons/)):
-
-1. **copies this repo to your own GitHub account** (so your deployment is fully independent
-   of the upstream project),
-2. reads `wrangler.toml` and **auto-provisions the D1 database** (no ids to copy, no
-   bindings to click), and
-3. builds and deploys the Worker, then wires up push-to-deploy on your copy.
-
-That's the whole setup. The tables are created automatically on first use.
+One click ([docs](https://developers.cloudflare.com/workers/platform/deploy-buttons/)):
+Cloudflare copies the repo to your account, auto-provisions D1, and deploys. Great for a
+quick look — but it makes a **standalone copy** (not a fork, and without the workflows), so
+**updates are manual** (see below). If you'll keep it, use the fork path above instead.
 
 ## CLI deploy (alternative)
 
-No fork needed — deploy straight from a clone:
+No fork needed — deploy from a clone; updates are a manual re-run:
 
 ```bash
 git clone https://github.com/floschu/board.git
 cd board
 npm install
 npx wrangler login
-npm run deploy:cloudflare
+npm run deploy:cloudflare   # auto-provisions D1 on first run
 ```
-
-`wrangler deploy` auto-provisions the D1 database on first run and writes its id into your
-local `wrangler.toml`. Re-run `npm run deploy:cloudflare` any time to publish an update.
 
 ### Custom domain (optional)
 
@@ -46,16 +53,22 @@ Cloudflare dashboard → your Worker → **Settings → Domains & Routes** → a
 
 ## Keeping up to date
 
-Your deployment tracks **your copy** of the repo, so new releases arrive by updating that
-copy. **Your data is never touched by an update** — the D1 database is a separate resource;
-only the code changes.
+**Your data is never touched by an update** — D1 is a separate resource; only the code changes.
 
-- **Manual (one click):** when a new release lands, open your copy on GitHub and click
-  **Sync fork** → it redeploys automatically with the new version.
-- **Automatic:** this repo ships `.github/workflows/update-from-upstream.yml`, which your
-  copy inherits. It checks daily (and on demand) for the latest upstream **release** and
-  merges it into your copy — preserving your auto-provisioned database id — which triggers a
-  redeploy. Delete that workflow if you'd rather update by hand.
+- **Forked (recommended):** when a release lands, open your fork on GitHub and click
+  **Sync fork → Update branch** — the push redeploys automatically. To make it hands-off,
+  enable Actions on your fork (its **Actions** tab → enable workflows): the bundled
+  `.github/workflows/update-from-upstream.yml` then checks daily for the latest upstream
+  **release** and merges it in (keeping your D1 database id).
+- **Button copy / CLI:** no fork link and no workflows, so pull the latest release into your
+  copy and push (the push redeploys):
+  ```bash
+  git remote add upstream https://github.com/floschu/board.git   # once
+  git fetch upstream --tags
+  git merge "$(gh release view --repo floschu/board --json tagName -q .tagName)"
+  git push
+  ```
+  Or switch to the fork path for one-click updates.
 
 ## Make it private
 

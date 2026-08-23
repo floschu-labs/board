@@ -54,18 +54,27 @@ docker run -d -p 3000:3000 -v /path/to/your/folder:/app/data ghcr.io/floschu/boa
 
 ## Self-Host - Cloudflare
 
-Deploy your own synced instance to Cloudflare (data stored in [Cloudflare D1](https://developers.cloudflare.com/d1/),
-no server to run) in one click. It copies this repo to your account, **auto-creates the
-database**, and deploys:
+Run your own synced instance on Cloudflare (data in [Cloudflare D1](https://developers.cloudflare.com/d1/),
+no server to run). The database is **auto-provisioned** and your data **persists across
+updates**.
+
+**Recommended: fork + connect** (so updates are one click later):
+
+1. **Fork** this repo.
+2. Cloudflare → **Workers & Pages → Create → Workers → Import a repository** → your fork.
+   The build and D1 are configured automatically.
+3. Update anytime with GitHub's **Sync fork** button (or enable Actions on your fork for
+   automatic daily updates).
+
+Just want a quick look? One-click **Deploy to Cloudflare** (a standalone copy — updates are
+manual):
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/floschu/board)
 
-Your board data **persists across updates** (the database is separate from the deployed
-code). The `/api/data` endpoint is unauthenticated, so if the deployment is reachable
-publicly, put it behind an access control such as
-[Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/).
+The `/api/data` endpoint is unauthenticated, so if the deployment is public, put it behind an
+access control such as [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/policies/access/).
 
-Prefer the CLI, or want to know how updates work? See **[CLOUDFLARE.md](CLOUDFLARE.md)**.
+Full guide (CLI, updates, privacy): **[CLOUDFLARE.md](CLOUDFLARE.md)**.
 
 ## Development
 
