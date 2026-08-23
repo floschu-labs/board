@@ -29,6 +29,14 @@ export default function App() {
   const glowColorHex = getGlowColorHex(glowColor, customGlowColor);
   const hasBackground = backgroundEffect !== 'none';
 
+  // Onboarding is only for a genuinely empty start. If any board data already
+  // exists — whether loaded from localStorage or synced from the server in
+  // api/Cloudflare mode — the app has effectively been set up before, so skip
+  // it. This is what prevents onboarding from re-appearing on every new device
+  // that connects to a synced (Cloudflare/self-hosted) deployment, where the
+  // hasSeenOnboarding flag lives in that device's empty localStorage.
+  const showOnboarding = !hasSeenOnboarding && projects.length === 0;
+
   // Ref to prevent double-creation of default project in React Strict Mode
   const hasCreatedDefaultProject = useRef(false);
 
@@ -42,6 +50,16 @@ export default function App() {
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  // Once data is present, durably mark onboarding as seen on this device so the
+  // flag stays honest (e.g. keyboard shortcuts, and not re-onboarding after a
+  // later "Delete All Data"). Covers a new device connecting to a server that
+  // already has boards.
+  useEffect(() => {
+    if (isInitialized && projects.length > 0 && !hasSeenOnboarding) {
+      setHasSeenOnboarding(true);
+    }
+  }, [isInitialized, projects.length, hasSeenOnboarding, setHasSeenOnboarding]);
 
   // Auto-create default project if none exist AND user has already seen onboarding
   // (If they haven't seen onboarding, the project will be created when they complete it)
@@ -104,7 +122,7 @@ export default function App() {
         } : undefined}
       >
         <Header />
-        <Board keyboardShortcutsEnabled={hasSeenOnboarding} />
+        <Board keyboardShortcutsEnabled={!showOnboarding} />
         <ShortcutsBar />
       </div>
 
@@ -112,8 +130,8 @@ export default function App() {
       <ImportDropZone />
 
       {/* Onboarding Modal */}
-      {!hasSeenOnboarding && (
-        <Onboarding 
+      {showOnboarding && (
+        <Onboarding
           onComplete={handleOnboardingComplete}
           showProjectNameStep={projects.length === 0}
         />
