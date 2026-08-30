@@ -1,8 +1,14 @@
+import { readFileSync } from 'node:fs'
 import { defineConfig } from 'vitest/config'
 import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+
+// Version committed in package.json. This is the source of truth baked into every
+// build target (Cloudflare, Docker, GitHub Pages), so the app always shows a real
+// version even when no CI-provided VITE_APP_VERSION is set.
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8'))
 
 export default defineConfig(({ mode }) => {
   // Load .env, .env.[mode] and process.env (prefix '' => include all).
@@ -13,8 +19,10 @@ export default defineConfig(({ mode }) => {
   // real env vars, which loadEnv picks up here and Vite exposes to the client.
   const env = loadEnv(mode, process.cwd(), '')
 
-  // Get version from environment variable (set by CI from release tag) or fallback to 'dev'
-  const appVersion = (env.VITE_APP_VERSION || 'dev').replace(/^v/, '')
+  // package.json version is the source of truth, baked into every build target
+  // (Cloudflare, Docker, GitHub Pages) so the app never shows a meaningless 'dev'
+  // label. VITE_APP_VERSION stays as an optional override for one-off manual builds.
+  const appVersion = (env.VITE_APP_VERSION || pkg.version).replace(/^v/, '')
 
   // Base URL: '/board/' for GitHub Pages (default), '/' for self-hosted/Docker/Cloudflare
   const baseUrl = env.VITE_BASE_URL || '/board/'

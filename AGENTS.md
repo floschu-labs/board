@@ -346,6 +346,24 @@ All user-provided URLs must be validated to prevent XSS:
 - **Docker image** published to `ghcr.io` on release tags
 - **GitHub Pages** deployment on release (`.github/workflows/release.yml`)
 
+### Releasing
+
+The app version displayed in the UI comes from the `version` field in `package.json`
+(baked in at build time by `vite.config.ts`), so it is the single source of truth
+across all deploy targets (Cloudflare, Docker, GitHub Pages).
+
+To cut a release, run the helper from the repo root:
+
+```bash
+./release.sh <version>    # e.g. ./release.sh 0.7.0
+```
+
+It bumps `version` in `package.json`, commits, creates the matching `v<version>` tag,
+and pushes — which triggers the Release workflow. That workflow re-verifies the tag
+matches `package.json` and **fails the release if they differ**, so the committed
+version can never drift from the released tag. To bump the version manually, do the
+same steps by hand (update `package.json`, commit, tag `v<version>` exactly, push).
+
 ## Key Dependencies
 
 | Package | Purpose |
